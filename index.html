@@ -171,7 +171,17 @@
     body{background:#fff;}
     main{max-width:none;padding:0;}
     .card, .table-wrap{box-shadow:none;border:1px solid #999;}
+    /* Item 31: printing a letter shows only the single-letter preview card, not the browsing table. */
+    #panel-letters .table-wrap, #panel-letters .results-strip{display:none !important;}
   }
+
+  .letter-preview-card{margin-top:16px;}
+  .letter-preview-card .lt-preview-empty{color:var(--muted);font-size:13px;}
+  .letter-preview-card .lt-preview-meta{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 20px;font-size:13px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px dashed var(--border);}
+  .letter-preview-card .lt-preview-subject{font-weight:700;font-size:14.5px;margin-bottom:10px;}
+  .letter-preview-card .lt-preview-body{white-space:pre-wrap;line-height:1.9;font-size:13.5px;}
+  .letter-preview-card .lt-preview-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;}
+  @media print{ .letter-preview-card .lt-preview-actions{display:none !important;} }
 /* ===== Prepared-by print sign-off + Punjab Govt masthead ===== */
 .pb-modal-overlay{position:fixed;inset:0;background:rgba(10,20,30,.55);display:none;align-items:center;justify-content:center;z-index:99999;}
 .pb-modal{background:#fff;border-radius:10px;padding:22px 24px;max-width:400px;width:92%;box-shadow:0 12px 40px rgba(0,0,0,.3);}
@@ -195,6 +205,7 @@
 .pb-print-sig-img{height:42px;max-width:160px;object-fit:contain;display:block;margin-bottom:2px;}
 .pb-print-masthead{display:none;}
 .pb-print-signfoot{display:none;}
+.pb-print-extra-fields{display:none;}
 @media print{
   .pb-print-masthead{display:flex !important;align-items:center;gap:12px;border-bottom:2px solid #B8860B;padding-bottom:8px;margin-bottom:14px;}
   .pb-print-masthead img{height:56px;width:auto;}
@@ -202,7 +213,25 @@
   .pb-print-masthead .pb-mh-t1{font-weight:700;font-size:15px;color:#153A5B;}
   .pb-print-masthead .pb-mh-t2{font-size:11px;color:#444;}
   .pb-print-signfoot{display:block !important;margin-top:24px;padding-top:8px;border-top:1px solid #999;font-size:12px;color:#222;}
+  .pb-print-extra-fields{display:block !important;font-size:11.5px;color:#222;margin-bottom:12px;line-height:1.7;border-bottom:1px dashed #999;padding-bottom:8px;}
+  .pb-print-extra-fields .hf-row{display:flex;justify-content:space-between;flex-wrap:wrap;gap:2px 20px;}
 }
+.hf-modal-overlay{position:fixed;inset:0;background:rgba(10,20,30,.55);display:none;align-items:center;justify-content:center;z-index:99999;}
+.hf-modal{background:#fff;border-radius:10px;padding:22px 24px;max-width:420px;width:92%;max-height:85vh;overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,.3);}
+.hf-modal h3{margin:0 0 4px;font-size:16px;color:#153A5B;}
+.hf-modal .pb-sub{font-size:12px;color:#666;margin-bottom:14px;line-height:1.7;}
+.hf-modal .field{margin-bottom:12px;}
+.hf-modal label{display:block;font-size:12.5px;margin-bottom:4px;color:#333;}
+.hf-modal input[type=text]{width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:6px;font-size:14px;box-sizing:border-box;font-family:inherit;}
+.hf-check-row{display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px solid #eee;}
+.hf-check-row:last-of-type{border-bottom:none;}
+.hf-check-row input[type=checkbox]{margin-top:3px;}
+.hf-check-row .hf-check-label{font-size:13px;color:#222;display:block;}
+.hf-check-row .hf-check-sub{font-size:11px;color:#777;}
+.hf-modal .pb-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;}
+.hf-modal button{padding:8px 18px;border-radius:6px;border:none;cursor:pointer;font-size:13.5px;}
+.hf-modal .pb-cancel{background:#eee;color:#333;}
+.hf-modal .pb-confirm{background:#1F4E78;color:#fff;font-weight:600;}
 
 </style>
 </head>
@@ -214,6 +243,7 @@
     <div class="pb-mh-t2">Supreme Court of Pakistan, Islamabad</div>
   </div>
 </div>
+<div class="pb-print-extra-fields" id="pbPrintExtraFields"></div>
 
 
 <div class="fullscreen-overlay auth-screen" id="authLoginScreen" style="display:flex;">
@@ -261,6 +291,8 @@
       <option value="teal">جدید ٹیل / Teal</option>
     </select>
     <button id="globalPrintBtn" data-i18n="btn_printCurrent">Print current view</button>
+    <button id="hfConfigBtn" type="button" class="btn ghost small" style="display:none;" title="Report header/footer fields / رپورٹ ہیڈر/فوٹر فیلڈز">☰ Header/Footer</button>
+    <button id="colsConfigBtn" type="button" class="btn ghost small" style="display:none;" title="Choose which columns to print / پرنٹ کے لیے کالم منتخب کریں">☰ Select Columns</button>
     <span><span data-i18n="lbl_signedInAs">Signed in as</span> <b id="currentUserLabel">—</b> <span class="role-badge" id="currentUserRole"></span></span>
     <a href="../" class="btn ghost small" title="Home / پورٹل پر واپس جائیں" style="text-decoration:none;">🏠 Home</a>
     <a href="../#ads" class="btn ghost small" title="اشتہارات دیکھیں / View Advertisements" style="text-decoration:none;">📢 اشتہارات / Ads</a>
@@ -343,11 +375,11 @@
       <div class="table-wrap">
         <table>
           <thead><tr>
-            <th data-i18n="th_sr">Sr#</th><th data-i18n="lbl_caseNo">Case No.</th><th data-i18n="lbl_title">Case title / parties</th>
-            <th data-i18n="lbl_courtRefNo">Court ref. No.</th><th data-i18n="lbl_institutionDate">Institution date</th>
-            <th data-i18n="lbl_subject">Subject</th><th data-i18n="lbl_status">Status</th>
-            <th data-i18n="lbl_nextHearing">Next hearing</th><th data-i18n="lbl_disposalDate">Disposal date</th>
-            <th data-i18n="lbl_remarks">Remarks</th><th data-i18n="th_actions">Actions</th>
+            <th data-i18n="th_sr">Sr#</th><th data-col="caseNo" data-i18n="lbl_caseNo">Case No.</th><th data-col="title" data-i18n="lbl_title">Case title / parties</th>
+            <th data-col="courtRefNo" data-i18n="lbl_courtRefNo">Court ref. No.</th><th data-col="institutionDate" data-i18n="lbl_institutionDate">Institution date</th>
+            <th data-col="subject" data-i18n="lbl_subject">Subject</th><th data-col="status" data-i18n="lbl_status">Status</th>
+            <th data-col="nextHearing" data-i18n="lbl_nextHearing">Next hearing</th><th data-col="disposalDate" data-i18n="lbl_disposalDate">Disposal date</th>
+            <th data-col="remarks" data-i18n="lbl_remarks">Remarks</th><th class="row-actions-th" data-i18n="th_actions">Actions</th>
           </tr></thead>
           <tbody id="regTableBody"></tbody>
         </table>
@@ -420,13 +452,102 @@
       <div class="table-wrap">
         <table>
           <thead><tr>
-            <th data-i18n="th_sr">Sr#</th><th data-i18n="fm_fileNo">File / Case No.</th><th data-i18n="fm_descField">Title / description</th>
-            <th data-i18n="fm_sentFrom">Sent from</th><th data-i18n="fm_sentTo">Sent to</th><th data-i18n="fm_dateSent">Date sent</th>
-            <th data-i18n="fm_purpose">Purpose</th><th data-i18n="fm_dateReceived">Received back</th><th data-i18n="fm_receivedBy">Received back by</th>
-            <th data-i18n="lbl_status">Status</th><th data-i18n="lbl_remarks">Remarks</th><th data-i18n="th_actions">Actions</th>
+            <th data-i18n="th_sr">Sr#</th><th data-col="fileNo" data-i18n="fm_fileNo">File / Case No.</th><th data-col="titleField" data-i18n="fm_descField">Title / description</th>
+            <th data-col="sentFrom" data-i18n="fm_sentFrom">Sent from</th><th data-col="sentTo" data-i18n="fm_sentTo">Sent to</th><th data-col="dateSent" data-i18n="fm_dateSent">Date sent</th>
+            <th data-col="purpose" data-i18n="fm_purpose">Purpose</th><th data-col="dateReceived" data-i18n="fm_dateReceived">Received back</th><th data-col="receivedBy" data-i18n="fm_receivedBy">Received back by</th>
+            <th data-col="status" data-i18n="lbl_status">Status</th><th data-col="remarks" data-i18n="lbl_remarks">Remarks</th><th class="row-actions-th" data-i18n="th_actions">Actions</th>
           </tr></thead>
           <tbody id="fmTableBody"></tbody>
         </table>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-letters">
+      <div class="panel-head">
+        <div>
+          <h2 data-i18n="lt_title">Letter Writing</h2>
+          <p data-i18n="lt_desc">Draft formal letters and reminder notices on office letterhead — save, print, or send straight to WhatsApp.</p>
+        </div>
+        <span class="count-chip" id="ltCount"></span>
+      </div>
+
+      <div class="card entry-form" id="ltFormCard">
+        <h3 id="ltFormTitle" data-i18n="lt_addEntry">Compose a letter</h3>
+        <div class="grid cols-4">
+          <div class="field"><label data-i18n="lt_type">Letter type</label>
+            <select id="lt_type">
+              <option value="formal" data-i18n="lt_type_formal">Formal Letter</option>
+              <option value="reminder" data-i18n="lt_type_reminder">Reminder Notice</option>
+            </select>
+          </div>
+          <div class="field"><label data-i18n="lt_date">Date</label><input type="date" id="lt_date"></div>
+          <div class="field"><label data-i18n="lt_refNo">Reference No. (optional)</label><input type="text" id="lt_refNo"></div>
+          <div class="field"><label data-i18n="lt_whatsapp">Recipient WhatsApp number (optional)</label><input type="text" id="lt_whatsapp" placeholder="923001234567"></div>
+        </div>
+        <p style="margin:2px 0 12px;font-size:11.5px;color:var(--muted);" data-i18n="lt_whatsappHint">Include country code, digits only (e.g. 923001234567). Leave blank to pick a contact inside WhatsApp instead.</p>
+        <div class="grid cols-4">
+          <div class="field" style="grid-column:span 2;"><label data-i18n="lt_toName">To (name / office)</label><input type="text" id="lt_toName"></div>
+          <div class="field" style="grid-column:span 2;"><label data-i18n="lt_toDesignation">Designation (optional)</label><input type="text" id="lt_toDesignation"></div>
+        </div>
+        <p style="margin:10px 0 6px;font-size:12.5px;font-weight:700;color:var(--muted);" data-i18n="lt_caseSection">Related case details (optional)</p>
+        <div class="grid cols-4">
+          <div class="field"><label data-i18n="lt_caseNo">Case No.</label><input type="text" id="lt_caseNo"></div>
+          <div class="field" style="grid-column:span 2;"><label data-i18n="lt_caseTitle">Title of Case</label><input type="text" id="lt_caseTitle"></div>
+          <div class="field"><label data-i18n="lt_versus">Versus</label><input type="text" id="lt_versus"></div>
+        </div>
+        <div class="grid cols-4" style="margin-top:12px;">
+          <div class="field"><label data-i18n="lt_firNo">F.I.R No.</label><input type="text" id="lt_firNo"></div>
+          <div class="field"><label data-i18n="lt_firDate">FIR date</label><input type="date" id="lt_firDate"></div>
+          <div class="field"><label data-i18n="lt_policeStation">Police Station</label><input type="text" id="lt_policeStation"></div>
+          <div class="field"><label data-i18n="lt_district">District</label><input type="text" id="lt_district"></div>
+        </div>
+        <div class="grid cols-4" style="margin-top:12px;">
+          <div class="field"><label data-i18n="lt_tehsil">Tehsil</label><input type="text" id="lt_tehsil"></div>
+          <div class="field"><label data-i18n="lt_benchNo">Bench No.</label><input type="text" id="lt_benchNo"></div>
+          <div class="field"><label data-i18n="lt_srNo">Sr No.</label><input type="text" id="lt_srNo"></div>
+        </div>
+        <div class="grid cols-4">
+          <div class="field" style="grid-column:span 4;"><label data-i18n="lt_subject">Subject</label><input type="text" id="lt_subject"></div>
+        </div>
+        <div class="grid cols-4">
+          <div class="field" style="grid-column:span 4;"><label data-i18n="lt_body">Letter body</label><textarea id="lt_body" rows="7"></textarea></div>
+        </div>
+        <div class="btnbar">
+          <button class="btn" id="lt_saveBtn" data-i18n="btn_saveEntry">Save entry</button>
+          <button class="btn ghost" id="lt_cancelBtn" style="display:none;" data-i18n="btn_cancelEdit">Cancel edit</button>
+          <button class="btn secondary" id="lt_exportBtn" data-i18n="btn_exportCsv">Export visible rows (CSV)</button>
+        </div>
+      </div>
+
+      <div class="search-bar">
+        <h3 data-i18n="lbl_searchTitle">Search &amp; filter</h3>
+        <div class="grid cols-4">
+          <div class="field"><label data-i18n="lt_type">Letter type</label>
+            <select id="ltf_type">
+              <option value="" data-i18n="opt_anyType">Any type</option>
+              <option value="formal" data-i18n="lt_type_formal">Formal Letter</option>
+              <option value="reminder" data-i18n="lt_type_reminder">Reminder Notice</option>
+            </select>
+          </div>
+          <div class="field"><label data-i18n="lt_toName">To (name / office)</label><input type="text" id="ltf_to"></div>
+          <div class="field" style="grid-column:span 2;"><label data-i18n="lt_subject">Subject</label><input type="text" id="ltf_subject"></div>
+        </div>
+        <div class="btnbar"><button class="btn ghost small" id="ltf_clear" data-i18n="btn_clearFilters">Clear filters</button></div>
+      </div>
+
+      <div class="results-strip"><span class="count-chip" id="ltResultCount"></span></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th data-i18n="th_sr">Sr#</th><th data-i18n="lt_date">Date</th><th data-i18n="th_type">Type</th><th data-i18n="th_to">To</th><th data-i18n="th_subject">Subject</th><th class="row-actions-th" data-i18n="th_actions">Actions</th>
+          </tr></thead>
+          <tbody id="ltTableBody"></tbody>
+        </table>
+      </div>
+
+      <div class="card letter-preview-card" id="ltPreviewCard">
+        <h3 data-i18n="lt_previewTitle">Letter preview</h3>
+        <div id="ltPreviewBody"><p class="lt-preview-empty" data-i18n="lt_noPreview">Click "View / Print" on a saved letter to preview it here.</p></div>
       </div>
     </section>
 
@@ -669,6 +790,48 @@
   </div>
 </div>
 <div class="pb-print-signfoot" id="pbPrintSignfoot"></div>
+<div class="hf-modal-overlay" id="hfModalOverlay">
+  <div class="hf-modal">
+    <h3 id="hfModalTitle">Header/Footer Fields</h3>
+    <div class="pb-sub">اس رجسٹر کے پرنٹ پر یہ اختیاری فیلڈز دکھانی ہیں یا نہیں، منتخب کریں (صرف Administrator کو نظر آتا ہے)۔<br>Choose which optional fields should appear when this register is printed (Administrator only).</div>
+    <div class="field"><label>دفتر کا پتہ / Office Address</label><input type="text" id="hfOfficeAddress" placeholder="e.g. Camp Office, Prosecutor General Punjab, Supreme Court of Pakistan, Islamabad"></div>
+    <div class="field"><label>رابطہ نمبر / Contact Number</label><input type="text" id="hfOfficeContact" placeholder="e.g. 051-1234567"></div>
+    <div class="field"><label>تیار کردہ افسر کا نام / Prepared By Name</label><input type="text" id="hfPreparedName" placeholder="e.g. Iftikhar Ahmed"></div>
+    <div class="field"><label>تیار کردہ افسر کا عہدہ / Prepared By Designation</label><input type="text" id="hfPreparedDesignation" placeholder="e.g. Junior Clerk"></div>
+    <div class="hf-check-row">
+      <input type="checkbox" id="hfChkDateDiary">
+      <label for="hfChkDateDiary"><span class="hf-check-label">تاریخ اور ڈائری نمبر / Date &amp; Diary No.</span><span class="hf-check-sub">Prints today's date, with a blank line for the diary number.</span></label>
+    </div>
+    <div class="hf-check-row">
+      <input type="checkbox" id="hfChkAddress">
+      <label for="hfChkAddress"><span class="hf-check-label">دفتر کا پتہ/رابطہ نمبر / Office Address &amp; Contact</span><span class="hf-check-sub">Prints the office address and contact number set above.</span></label>
+    </div>
+    <div class="hf-check-row">
+      <input type="checkbox" id="hfChkPrepared">
+      <label for="hfChkPrepared"><span class="hf-check-label">تیار کردہ افسر کا نام/عہدہ / Prepared By Name &amp; Designation</span><span class="hf-check-sub">Prints the name/designation set above.</span></label>
+    </div>
+    <div class="hf-check-row">
+      <input type="checkbox" id="hfChkReference">
+      <label for="hfChkReference"><span class="hf-check-label">حوالہ نمبر / Reference No.</span><span class="hf-check-sub">Prints a blank line for a reference/file number.</span></label>
+    </div>
+    <div class="pb-actions">
+      <button type="button" class="pb-cancel" id="hfCancelBtn">Cancel</button>
+      <button type="button" class="pb-confirm" id="hfSaveBtn">محفوظ کریں / Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="hf-modal-overlay" id="colsModalOverlay">
+  <div class="hf-modal">
+    <h3 id="colsModalTitle">Select print columns</h3>
+    <div class="pb-sub">اس رجسٹر کے پرنٹ پر یہ کالم دکھانے ہیں یا نہیں، منتخب کریں (صرف Administrator کو نظر آتا ہے، اسکرین یا Excel/CSV پر اثر نہیں پڑے گا)۔<br>Choose which columns should appear when this register is printed (Administrator only — does not affect the screen view or Excel/CSV export).</div>
+    <div id="colsCheckboxWrap"></div>
+    <div class="pb-actions">
+      <button type="button" class="pb-cancel" id="colsCancelBtn">Cancel</button>
+      <button type="button" class="pb-confirm" id="colsSaveBtn">محفوظ کریں / Save</button>
+    </div>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
 
 <input type="file" id="restoreFile" accept="application/json" style="display:none">
@@ -783,7 +946,7 @@ en: {
   lbl_remarks:"Remarks", lbl_searchTitle:"Search & filter", lbl_status:"Status", lbl_subject:"Subject / nature of case",
   lbl_title:"Case title / parties",
   nav_data:"Data", nav_registers:"Registers", nav_other:"Other Registers",
-  opt_anyStatus:"Any status",
+  opt_anyStatus:"Any status", opt_anyType:"Any type",
   st_disposed:"Disposed", st_dismissed:"Dismissed", st_allowed:"Allowed", st_fixed:"Fixed for Hearing",
   st_pending:"Pending", st_withdrawn:"Withdrawn",
   th_actions:"Actions", th_sr:"Sr#",
@@ -818,7 +981,19 @@ en: {
   dr_name:"Name & designation", dr_court:"Court / duty location",
   jm_title:"Manage Judges",
   jm_desc:"Keep each court's bench up to date yourself — add, edit or remove judges any time. The Supreme Court and Federal Constitutional Court lists were seeded from public sources on 9 September 2026 — please verify and correct as needed, since judicial appointments change.",
-  jm_addJudge:"Add a judge", jm_court:"Court", jm_name:"Judge's name", jm_designation:"Designation", jm_filterCourt:"Show court"
+  jm_addJudge:"Add a judge", jm_court:"Court", jm_name:"Judge's name", jm_designation:"Designation", jm_filterCourt:"Show court",
+  nav_letters:"✉️ Letters", lt_title:"Letter Writing", lt_desc:"Draft formal letters and reminder notices on office letterhead — save, print, or send straight to WhatsApp.",
+  lt_addEntry:"Compose a letter", lt_type:"Letter type", lt_type_formal:"Formal Letter", lt_type_reminder:"Reminder Notice",
+  lt_date:"Date", lt_refNo:"Reference No. (optional)", lt_toName:"To (name / office)", lt_toDesignation:"Designation (optional)",
+  lt_whatsapp:"Recipient WhatsApp number (optional)", lt_whatsappHint:"Include country code, digits only (e.g. 923001234567). Leave blank to pick a contact inside WhatsApp instead.",
+  lt_subject:"Subject", lt_body:"Letter body", th_type:"Type", th_to:"To", th_subject:"Subject",
+  lt_entries_singular:"letter", lt_entries_plural:"letters", lt_noLettersMatch:"No letters match. Compose one above, or clear filters.",
+  btn_viewPrint:"View / Print", btn_sendWhatsapp:"📱 Send via WhatsApp",
+  lt_previewTitle:"Letter preview", lt_noPreview:"Click \"View / Print\" on a saved letter to preview it here.",
+  lt_refLabel:"Ref. No.", lt_toLabel:"To", lt_subjectLabel:"Subject:", lt_dateLabel:"Date",
+  lt_caseSection:"Related case details (optional)", lt_caseNo:"Case No.", lt_caseTitle:"Title of Case", lt_versus:"Versus",
+  lt_firNo:"F.I.R No.", lt_firDate:"FIR date", lt_policeStation:"Police Station", lt_district:"District",
+  lt_tehsil:"Tehsil", lt_benchNo:"Bench No.", lt_srNo:"Sr No."
 },
 ur: {
   app_title:"ریکارڈ سیکشن — کیس رجسٹرز",
@@ -839,7 +1014,7 @@ ur: {
   lbl_remarks:"ریمارکس", lbl_searchTitle:"تلاش اور فلٹر", lbl_status:"صورتحال", lbl_subject:"موضوع / نوعیتِ مقدمہ",
   lbl_title:"کیس کا عنوان / فریقین",
   nav_data:"ڈیٹا", nav_registers:"رجسٹرز", nav_other:"دیگر رجسٹرز",
-  opt_anyStatus:"کوئی بھی صورتحال",
+  opt_anyStatus:"کوئی بھی صورتحال", opt_anyType:"کوئی بھی قسم",
   st_disposed:"نمٹا دیا گیا", st_dismissed:"خارج", st_allowed:"منظور", st_fixed:"سماعت کے لیے مقرر",
   st_pending:"زیرِ التوا", st_withdrawn:"واپس لیا گیا",
   th_actions:"عملدرآمد", th_sr:"سیریل",
@@ -874,7 +1049,19 @@ ur: {
   dr_name:"نام و عہدہ", dr_court:"عدالت / ڈیوٹی مقام",
   jm_title:"ججز کا انتظام",
   jm_desc:"ہر عدالت کے ججز کی فہرست خود اپ ڈیٹ رکھیں — جب چاہیں جج شامل، ترمیم یا حذف کریں۔ سپریم کورٹ اور وفاقی آئینی عدالت کی فہرستیں 9 ستمبر 2026 کو عوامی ذرائع سے شامل کی گئی ہیں — چونکہ ججز تبدیل ہوتے رہتے ہیں، براہ کرم خود تصدیق/درستگی کر لیں۔",
-  jm_addJudge:"نیا جج شامل کریں", jm_court:"عدالت", jm_name:"جج کا نام", jm_designation:"عہدہ", jm_filterCourt:"عدالت دکھائیں"
+  jm_addJudge:"نیا جج شامل کریں", jm_court:"عدالت", jm_name:"جج کا نام", jm_designation:"عہدہ", jm_filterCourt:"عدالت دکھائیں",
+  nav_letters:"✉️ خطوط", lt_title:"خط نویسی", lt_desc:"دفتری لیٹرہیڈ پر رسمی خطوط اور یاددہانی نوٹس تیار کریں — محفوظ کریں، پرنٹ کریں، یا براہِ راست واٹس ایپ پر بھیجیں۔",
+  lt_addEntry:"نیا خط لکھیں", lt_type:"خط کی قسم", lt_type_formal:"رسمی خط", lt_type_reminder:"یاددہانی نوٹس",
+  lt_date:"تاریخ", lt_refNo:"حوالہ نمبر (اختیاری)", lt_toName:"بنام (نام / دفتر)", lt_toDesignation:"عہدہ (اختیاری)",
+  lt_whatsapp:"وصول کنندہ کا واٹس ایپ نمبر (اختیاری)", lt_whatsappHint:"ملکی کوڈ سمیت، صرف ہندسے لکھیں (مثلاً 923001234567)۔ خالی چھوڑنے پر واٹس ایپ کے اندر ہی رابطہ منتخب کرنے کا موقع ملے گا۔",
+  lt_subject:"موضوع", lt_body:"خط کا متن", th_type:"قسم", th_to:"بنام", th_subject:"موضوع",
+  lt_entries_singular:"خط", lt_entries_plural:"خطوط", lt_noLettersMatch:"کوئی خط نہیں ملا۔ اوپر ایک نیا خط لکھیں، یا فلٹرز صاف کریں۔",
+  btn_viewPrint:"دیکھیں / پرنٹ کریں", btn_sendWhatsapp:"📱 واٹس ایپ پر بھیجیں",
+  lt_previewTitle:"خط کا پیش نظارہ", lt_noPreview:"کسی محفوظ شدہ خط پر \"دیکھیں / پرنٹ کریں\" دبائیں تاکہ وہ یہاں نظر آئے۔",
+  lt_refLabel:"حوالہ نمبر", lt_toLabel:"بنام", lt_subjectLabel:"موضوع:", lt_dateLabel:"تاریخ",
+  lt_caseSection:"متعلقہ کیس کی تفصیلات (اختیاری)", lt_caseNo:"کیس نمبر", lt_caseTitle:"کیس کا عنوان", lt_versus:"بمقابلہ",
+  lt_firNo:"ایف آئی آر نمبر", lt_firDate:"ایف آئی آر کی تاریخ", lt_policeStation:"تھانہ", lt_district:"ضلع",
+  lt_tehsil:"تحصیل", lt_benchNo:"بینچ نمبر", lt_srNo:"سیریل نمبر"
 }
 };
 var UI_LANG_STORAGE_KEY = "recordSection_uiLang";
@@ -910,6 +1097,7 @@ function esc(s){
   s = (s==null)? "" : String(s);
   return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 }
+function todayStr(){ var d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
 function uniqueSorted(arr){ return Array.from(new Set(arr.filter(function(v){return v!==undefined&&v!==null&&v!=="";}))).sort(function(a,b){return String(a).localeCompare(String(b),undefined,{numeric:true});}); }
 
@@ -1058,9 +1246,10 @@ document.getElementById("cust_saveBtn").addEventListener("click", function(){
   });
   var firstKey = def.fields[0] && def.fields[0].key;
   if(firstKey && !values[firstKey]){ toast(t("lbl_addEntry")+": "+(def.fields[0].labelEn||def.fields[0].labelUr)+" required."); return; }
-  var rec = { id: customEditId || uid(), defId: def.id, values: values };
+  var rec = { id: customEditId || uid(), defId: def.id, values: values, createdBy: (CURRENT_USER? CURRENT_USER.username : "") };
   if(customEditId){
     var idx = CUSTOM_RECORDS.findIndex(function(x){ return x.id===customEditId; });
+    rec.createdBy = CUSTOM_RECORDS[idx].createdBy;
     CUSTOM_RECORDS[idx] = rec;
     toast("Entry updated.");
   } else {
@@ -1169,10 +1358,12 @@ document.getElementById("cm_saveBtn").addEventListener("click", function(){
   if(!cmFieldRows.length){ toast("Add at least one field."); return; }
   var def = {
     id: cmEditId || uid(), nameEn: nameEn, nameUr: nameUr,
-    fields: cmFieldRows.map(function(r){ return {key:r.key, labelEn:r.labelEn, labelUr:r.labelUr, type:r.type, options:r.options||[]}; })
+    fields: cmFieldRows.map(function(r){ return {key:r.key, labelEn:r.labelEn, labelUr:r.labelUr, type:r.type, options:r.options||[]}; }),
+    createdBy: (CURRENT_USER? CURRENT_USER.username : "")
   };
   if(cmEditId){
     var idx = CUSTOM_DEFS.findIndex(function(x){ return x.id===cmEditId; });
+    def.createdBy = CUSTOM_DEFS[idx].createdBy;
     CUSTOM_DEFS[idx] = def;
     toast("Register updated.");
   } else {
@@ -1246,9 +1437,10 @@ document.getElementById("jm_saveBtn").addEventListener("click", function(){
   var name = document.getElementById("jm_name").value.trim();
   var designation = document.getElementById("jm_designation").value.trim();
   if(!name){ toast("Judge's name is required."); return; }
-  var rec = { id: judgeEditId || uid(), courtKey: courtKey, name: name, designation: designation };
+  var rec = { id: judgeEditId || uid(), courtKey: courtKey, name: name, designation: designation, createdBy: (CURRENT_USER? CURRENT_USER.username : "") };
   if(judgeEditId){
     var idx = JUDGES.findIndex(function(x){ return x.id===judgeEditId; });
+    rec.createdBy = JUDGES[idx].createdBy;
     JUDGES[idx] = rec;
     toast("Judge updated.");
   } else {
@@ -1343,10 +1535,12 @@ document.getElementById("jr_saveBtn").addEventListener("click", function(){
   var rec = {
     id: benchEditId || uid(), courtKey: CURRENT_COURT, date: date, bench: bench,
     judges: judgesList, caseNo: caseNo, nature: nature,
-    remarks: document.getElementById("jr_remarks").value.trim()
+    remarks: document.getElementById("jr_remarks").value.trim(),
+    createdBy: (CURRENT_USER? CURRENT_USER.username : "")
   };
   if(benchEditId){
     var idx = BENCH_ENTRIES.findIndex(function(x){ return x.id===benchEditId; });
+    rec.createdBy = BENCH_ENTRIES[idx].createdBy;
     BENCH_ENTRIES[idx] = rec;
     toast("Entry updated.");
   } else {
@@ -1456,9 +1650,10 @@ document.getElementById("dr_saveBtn").addEventListener("click", function(){
   var location = getSelectOrAddValue("dr_court","dr_court_new");
   if(!date){ toast("Date is required."); return; }
   if(!name){ toast("Name & designation is required."); return; }
-  var rec = { id: dutyEditId || uid(), date: date, name: name, location: location, remarks: document.getElementById("dr_remarks").value.trim() };
+  var rec = { id: dutyEditId || uid(), date: date, name: name, location: location, remarks: document.getElementById("dr_remarks").value.trim(), createdBy: (CURRENT_USER? CURRENT_USER.username : "") };
   if(dutyEditId){
     var idx = DUTY_ROSTER.findIndex(function(x){ return x.id===dutyEditId; });
+    rec.createdBy = DUTY_ROSTER[idx].createdBy;
     DUTY_ROSTER[idx] = rec;
     toast("Entry updated.");
   } else {
@@ -1565,7 +1760,183 @@ function updateUserBar(){
   roleEl.textContent = CURRENT_USER? (isAdmin()? "Administrator":"Guest") : "";
   roleEl.className = "role-badge"+(isAdmin()? " admin":"");
   document.body.classList.toggle("guest-mode", !isAdmin());
+  document.getElementById("hfConfigBtn").style.display = isAdmin()? "inline-flex":"none";
+  document.getElementById("colsConfigBtn").style.display = isAdmin()? "inline-flex":"none";
 }
+
+/* ================= Item 18: optional report header/footer fields =================
+   9 built-in registers + any custom registers all share one panel (#panel-register /
+   #panel-custom), switching content via CURRENT_TYPE / CURRENT_CUSTOM_DEF_ID rather than
+   separate panel ids — so the header/footer config key must include which register is
+   actually showing, not just the panel id, or every register would share one config. */
+var PANEL_LABELS = {
+  filemovement:"File Movement Register", letters:"Letter Writing", custommanage:"Manage Custom Registers",
+  judicial:"Judicial Roster", judgesmanage:"Manage Judges", dutyroster:"Duty Roster"
+};
+function currentPanelKey(){
+  var active = document.querySelector(".panel.active");
+  if(!active) return "";
+  var id = active.id.replace("panel-","");
+  if(id==="register") return "register:"+CURRENT_TYPE;
+  if(id==="custom" && CURRENT_CUSTOM_DEF_ID) return "custom:"+CURRENT_CUSTOM_DEF_ID;
+  return id;
+}
+function currentPanelLabel(){
+  var active = document.querySelector(".panel.active");
+  if(!active) return "";
+  var id = active.id.replace("panel-","");
+  if(id==="register"){
+    var t = document.getElementById("regTitle"); return t? t.textContent : "Register";
+  }
+  if(id==="custom"){
+    var ct = document.getElementById("custRegTitle"); return ct? ct.textContent : "Custom Register";
+  }
+  return PANEL_LABELS[id]||id;
+}
+function buildPrintExtraFieldsHtml(key){
+  var cfg = (STATE.headerFooterConfig && STATE.headerFooterConfig[key]) || {};
+  var rows = [];
+  if(cfg.dateDiary){
+    rows.push("<div class='hf-row'><span>Date / تاریخ: <bdi>"+esc(todayStr())+"</bdi></span><span>Diary No. / ڈائری نمبر: ______________</span></div>");
+  }
+  if(cfg.address && (STATE.officeAddress || STATE.officeContact)){
+    rows.push("<div class='hf-row'><span>Address / پتہ: <bdi>"+esc(STATE.officeAddress||"—")+"</bdi></span><span>Contact / رابطہ: <bdi>"+esc(STATE.officeContact||"—")+"</bdi></span></div>");
+  }
+  if(cfg.prepared && (STATE.preparedByName || STATE.preparedByDesignation)){
+    rows.push("<div class='hf-row'><span>Prepared by / تیار کردہ: <bdi>"+esc(STATE.preparedByName||"—")+"</bdi></span><span><bdi>"+esc(STATE.preparedByDesignation||"")+"</bdi></span></div>");
+  }
+  if(cfg.reference){
+    rows.push("<div class='hf-row'><span>Reference No. / حوالہ نمبر: ______________</span></div>");
+  }
+  return rows.join("");
+}
+document.getElementById("hfConfigBtn").addEventListener("click", function(){
+  if(!isAdmin()){ toast("Only an Administrator can change header/footer fields."); return; }
+  var key = currentPanelKey();
+  var cfg = (STATE.headerFooterConfig && STATE.headerFooterConfig[key]) || {};
+  document.getElementById("hfModalOverlay").dataset.key = key;
+  document.getElementById("hfModalTitle").textContent = "Header/Footer Fields — "+currentPanelLabel();
+  document.getElementById("hfOfficeAddress").value = STATE.officeAddress || "";
+  document.getElementById("hfOfficeContact").value = STATE.officeContact || "";
+  document.getElementById("hfPreparedName").value = STATE.preparedByName || "";
+  document.getElementById("hfPreparedDesignation").value = STATE.preparedByDesignation || "";
+  document.getElementById("hfChkDateDiary").checked = !!cfg.dateDiary;
+  document.getElementById("hfChkAddress").checked = !!cfg.address;
+  document.getElementById("hfChkPrepared").checked = !!cfg.prepared;
+  document.getElementById("hfChkReference").checked = !!cfg.reference;
+  document.getElementById("hfModalOverlay").style.display = "flex";
+});
+document.getElementById("hfCancelBtn").addEventListener("click", function(){
+  document.getElementById("hfModalOverlay").style.display = "none";
+});
+document.getElementById("hfSaveBtn").addEventListener("click", function(){
+  if(!isAdmin()){ toast("Only an Administrator can change header/footer fields."); return; }
+  var key = document.getElementById("hfModalOverlay").dataset.key;
+  STATE.officeAddress = document.getElementById("hfOfficeAddress").value.trim();
+  STATE.officeContact = document.getElementById("hfOfficeContact").value.trim();
+  STATE.preparedByName = document.getElementById("hfPreparedName").value.trim();
+  STATE.preparedByDesignation = document.getElementById("hfPreparedDesignation").value.trim();
+  STATE.headerFooterConfig = STATE.headerFooterConfig || {};
+  STATE.headerFooterConfig[key] = {
+    dateDiary: document.getElementById("hfChkDateDiary").checked,
+    address: document.getElementById("hfChkAddress").checked,
+    prepared: document.getElementById("hfChkPrepared").checked,
+    reference: document.getElementById("hfChkReference").checked
+  };
+  saveData();
+  document.getElementById("hfModalOverlay").style.display = "none";
+  toast("Header/Footer settings saved.");
+});
+
+/* ================= Item 38: choose which columns print =================
+   The 9 built-in registers + custom registers all share ONE physical DOM table
+   (#panel-register), switching only which data is shown via CURRENT_TYPE — so unlike
+   DCMS (separate permanent DOM per panel, safe to build one combined stylesheet for all
+   stored panel keys at once), the print-column CSS here must be rebuilt on every
+   renderRegister() call, scoped to ONLY the currently active register sub-type
+   (STATE.printColumns["register:"+CURRENT_TYPE]) — otherwise another sub-type's saved
+   column choices would leak onto whichever table is actually on screen. File Movement has
+   its own separate fixed panel, so it gets the same treatment for consistency, each panel
+   only touching the shared style tag while its own panel is the one actually visible.
+   Custom Registers are deliberately skipped — the admin already controls the exact field
+   set at register-definition time, so a second column-selection step would be redundant. */
+var COL_PRINT_STYLE_ID = "colPrintStyle";
+function ensureColPrintStyleTag(){
+  var style = document.getElementById(COL_PRINT_STYLE_ID);
+  if(!style){ style = document.createElement("style"); style.id = COL_PRINT_STYLE_ID; document.head.appendChild(style); }
+  return style;
+}
+function isPanelActive(domId){
+  var el = document.getElementById("panel-"+domId);
+  return !!(el && el.classList.contains("active"));
+}
+function buildColPrintCss(panelKey, panelSelector){
+  var cfg = (STATE.printColumns && STATE.printColumns[panelKey]) || {};
+  var hidden = Object.keys(cfg).filter(function(k){ return cfg[k]===false; });
+  if(!hidden.length) return "";
+  var sel = hidden.map(function(k){ return panelSelector+" [data-col='"+k+"']"; }).join(",");
+  return "@media print{ "+sel+"{display:none !important;} }";
+}
+function applyRegisterColumnPrintCss(){
+  if(!isPanelActive("register")) return;
+  ensureColPrintStyleTag().textContent = buildColPrintCss("register:"+CURRENT_TYPE, "#panel-register");
+}
+function applyFileMovementColumnPrintCss(){
+  if(!isPanelActive("filemovement")) return;
+  ensureColPrintStyleTag().textContent = buildColPrintCss("filemovement", "#panel-filemovement");
+}
+function panelDomIdFromKey(key){
+  if(key.indexOf("register:")===0) return "register";
+  if(key.indexOf("custom:")===0) return "custom";
+  return key;
+}
+function collectPanelColumns(panelKey){
+  var domId = panelDomIdFromKey(panelKey);
+  var table = document.querySelector("#panel-"+domId+" table");
+  if(!table) return [];
+  var cols = [];
+  table.querySelectorAll("thead [data-col]").forEach(function(th){ cols.push({key: th.dataset.col, label: th.textContent.trim()}); });
+  return cols;
+}
+function renderColsCheckboxes(panelKey, cols){
+  var stored = (STATE.printColumns && STATE.printColumns[panelKey]) || {};
+  var html = "";
+  cols.forEach(function(c){
+    var checked = stored[c.key]!==false;
+    html += "<div class='hf-check-row'><input type='checkbox' class='colsChk' data-key='"+esc(c.key)+"'"+(checked?" checked":"")+">"+
+      "<label><span class='hf-check-label'>"+esc(c.label)+"</span></label></div>";
+  });
+  document.getElementById("colsCheckboxWrap").innerHTML = html || "<p>No printable columns.</p>";
+}
+document.getElementById("colsConfigBtn").addEventListener("click", function(){
+  if(!isAdmin()){ toast("صرف Administrator کالم کی ترتیب بدل سکتا ہے۔ / Only an Administrator can change print columns."); return; }
+  var key = currentPanelKey();
+  var domId = panelDomIdFromKey(key);
+  if(domId==="custom"){ toast("کسٹم رجسٹرز میں فیلڈز پہلے ہی رجسٹر بناتے وقت منتخب کی جاتی ہیں — یہاں الگ سے کالم منتخب کرنے کی ضرورت نہیں۔ / Custom registers already let you choose their fields when defining the register — no separate column selection is needed here."); return; }
+  var cols = collectPanelColumns(key);
+  if(!cols.length){ toast("اس پینل میں کوئی پرنٹ ایبل ٹیبل نہیں۔ / This panel has no printable table."); return; }
+  document.getElementById("colsModalOverlay").dataset.key = key;
+  document.getElementById("colsModalTitle").textContent = "Select print columns — "+currentPanelLabel();
+  renderColsCheckboxes(key, cols);
+  document.getElementById("colsModalOverlay").style.display = "flex";
+});
+document.getElementById("colsCancelBtn").addEventListener("click", function(){
+  document.getElementById("colsModalOverlay").style.display = "none";
+});
+document.getElementById("colsSaveBtn").addEventListener("click", function(){
+  if(!isAdmin()){ toast("صرف Administrator کالم کی ترتیب بدل سکتا ہے۔ / Only an Administrator can change print columns."); return; }
+  var key = document.getElementById("colsModalOverlay").dataset.key;
+  var result = {};
+  document.querySelectorAll("#colsCheckboxWrap .colsChk").forEach(function(chk){ result[chk.dataset.key] = chk.checked; });
+  STATE.printColumns = STATE.printColumns || {};
+  STATE.printColumns[key] = result;
+  saveData();
+  document.getElementById("colsModalOverlay").style.display = "none";
+  applyRegisterColumnPrintCss();
+  applyFileMovementColumnPrintCss();
+  toast("کالم کی ترتیب محفوظ ہو گئی۔ / Column settings saved.");
+});
+
 document.getElementById("goToSignupBtn").addEventListener("click", showSetupScreen);
 document.getElementById("forgotPasswordLink").addEventListener("click", function(e){{
   e.preventDefault();
@@ -1641,8 +2012,13 @@ function normalizeData(data){
   }
   data.benchEntries = Array.isArray(data.benchEntries)? data.benchEntries : [];
   data.dutyRoster = Array.isArray(data.dutyRoster)? data.dutyRoster : [];
+  data.letters = Array.isArray(data.letters)? data.letters : [];
   data.preparedByName = data.preparedByName || "Iftikhar Ahmed";
   data.preparedByDesignation = data.preparedByDesignation || "Junior Clerk, Camp Office Prosecutor General Punjab, Supreme Court of Pakistan, Islamabad";
+  data.officeAddress = data.officeAddress || "";
+  data.officeContact = data.officeContact || "";
+  data.headerFooterConfig = data.headerFooterConfig || {};
+  data.printColumns = data.printColumns || {};
   return data;
 }
 var STATE = normalizeData({});
@@ -1652,11 +2028,21 @@ function mergeArrayById(serverArr, localArr){
   (localArr||[]).forEach(function(item){ if(item && item.id!=null){ map[item.id]=item; if(!seen[item.id]){ order.push(item.id); seen[item.id]=true; } } });
   return order.map(function(id){ return map[id]; });
 }
-var MERGE_BY_ID_FIELDS = ["records","fileMovements","customRegisterDefs","customRecords","judges","benchEntries","dutyRoster"];
+/* Dict fields (plain key->value objects, not id-keyed arrays): merge key-by-key so one
+   admin saving one register's header/footer config can't wipe out another admin's concurrent
+   save of a different register's config — same reasoning as the array merge above. */
+function mergeDict(serverObj, localObj){
+  var out = Object.assign({}, serverObj||{});
+  Object.keys(localObj||{}).forEach(function(k){ out[k] = localObj[k]; });
+  return out;
+}
+var MERGE_BY_ID_FIELDS = ["records","fileMovements","customRegisterDefs","customRecords","judges","benchEntries","dutyRoster","letters"];
+var MERGE_DICT_FIELDS = ["headerFooterConfig", "printColumns"];
 function mergeStates(serverState, localState){
   var merged = {};
   MERGE_BY_ID_FIELDS.forEach(function(f){ merged[f] = mergeArrayById(serverState[f], localState[f]); });
-  var handled = MERGE_BY_ID_FIELDS;
+  MERGE_DICT_FIELDS.forEach(function(f){ merged[f] = mergeDict(serverState[f], localState[f]); });
+  var handled = MERGE_BY_ID_FIELDS.concat(MERGE_DICT_FIELDS);
   Object.keys(localState).concat(Object.keys(serverState)).forEach(function(k){
     if(handled.indexOf(k)===-1){ merged[k] = (localState[k]!==undefined)? localState[k] : serverState[k]; }
   });
@@ -1717,6 +2103,7 @@ function fetchStateFromFirestore(callback){
     STATE = normalizeData(snap.exists? snap.data() : {});
     RECORDS = STATE.records;
     FILE_MOVEMENTS = STATE.fileMovements;
+    LETTERS = STATE.letters;
     CUSTOM_DEFS = STATE.customRegisterDefs;
     CUSTOM_RECORDS = STATE.customRecords;
     JUDGES = STATE.judges;
@@ -1734,6 +2121,7 @@ function startRealtimeSync(){
     STATE = normalizeData(snap.data());
     RECORDS = STATE.records;
     FILE_MOVEMENTS = STATE.fileMovements;
+    LETTERS = STATE.letters;
     CUSTOM_DEFS = STATE.customRegisterDefs;
     CUSTOM_RECORDS = STATE.customRecords;
     JUDGES = STATE.judges;
@@ -1747,6 +2135,7 @@ function renderAll(){
   renderSidenav();
   renderRegister();
   renderFileMovement();
+  renderLetters();
   renderCustomRegister();
   renderCustomManage();
   renderJudicial();
@@ -1758,13 +2147,21 @@ function saveFm(){ STATE.fileMovements = FILE_MOVEMENTS; saveData(); }
 function saveJudges(){ STATE.judges = JUDGES; saveData(); }
 function saveBenchEntries(){ STATE.benchEntries = BENCH_ENTRIES; saveData(); }
 function saveDutyRoster(){ STATE.dutyRoster = DUTY_ROSTER; saveData(); }
+function saveLetters(){ STATE.letters = LETTERS; saveData(); }
 
 var RECORDS = [];
 var CURRENT_TYPE = REGISTER_TYPES[0].key;
-var CURRENT_VIEW = "register"; /* "register" | "filemovement" | "custom" | "custommanage" | "judicial" | "judgesmanage" | "dutyroster" */
+var CURRENT_VIEW = "register"; /* "register" | "filemovement" | "letters" | "custom" | "custommanage" | "judicial" | "judgesmanage" | "dutyroster" */
 var editId = null;
 var FILE_MOVEMENTS = [];
 var fmEditId = null;
+var LETTERS = [];
+var ltEditId = null;
+var ltPreviewId = null;
+/* Optional "related case" reference fields on a letter — input id "lt_caseNo" stores under
+   letter.caseNo, etc. (strip the "lt_" prefix), so save/edit/reset can loop generically. */
+var LT_CASE_FIELDS = ["lt_caseNo","lt_caseTitle","lt_versus","lt_firNo","lt_firDate","lt_policeStation","lt_district","lt_tehsil","lt_benchNo","lt_srNo"];
+function ltCaseFieldKey(id){ return id.slice(3); }
 var CUSTOM_DEFS = [];
 var CUSTOM_RECORDS = [];
 var CURRENT_CUSTOM_DEF_ID = null;
@@ -1782,6 +2179,7 @@ var judgeEditId = null;
 function switchPanels(){
   document.getElementById("panel-register").classList.toggle("active", CURRENT_VIEW==="register");
   document.getElementById("panel-filemovement").classList.toggle("active", CURRENT_VIEW==="filemovement");
+  document.getElementById("panel-letters").classList.toggle("active", CURRENT_VIEW==="letters");
   document.getElementById("panel-custom").classList.toggle("active", CURRENT_VIEW==="custom");
   document.getElementById("panel-custommanage").classList.toggle("active", CURRENT_VIEW==="custommanage");
   document.getElementById("panel-judicial").classList.toggle("active", CURRENT_VIEW==="judicial");
@@ -1823,6 +2221,7 @@ function renderSidenav(){
   });
   html += "<div class='navnote'>"+esc(t("nav_other"))+"</div>";
   html += "<button class='tab-btn"+(CURRENT_VIEW==="filemovement"? " active":"")+"' data-view='filemovement'><span class='dot'></span> "+esc(t("fm_title"))+"</button>";
+  html += "<button class='tab-btn"+(CURRENT_VIEW==="letters"? " active":"")+"' data-view='letters'><span class='dot'></span> "+esc(t("nav_letters"))+"</button>";
   if(CUSTOM_DEFS.length || isAdmin()){
     html += "<div class='navnote'>"+esc(t("nav_customRegisters"))+"</div>";
     CUSTOM_DEFS.forEach(function(d){
@@ -1862,6 +2261,15 @@ function renderSidenav(){
       switchPanels();
       renderSidenav();
       renderFileMovement();
+    });
+  });
+  nav.querySelectorAll(".tab-btn[data-view='letters']").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      CURRENT_VIEW = "letters";
+      resetLtForm();
+      switchPanels();
+      renderSidenav();
+      renderLetters();
     });
   });
   nav.querySelectorAll(".tab-btn[data-customkey]").forEach(function(btn){
@@ -1943,10 +2351,12 @@ document.getElementById("r_saveBtn").addEventListener("click", function(){
     status: document.getElementById("r_status").value,
     nextHearing: document.getElementById("r_nextHearing").value,
     disposalDate: document.getElementById("r_disposalDate").value,
-    remarks: document.getElementById("r_remarks").value.trim()
+    remarks: document.getElementById("r_remarks").value.trim(),
+    createdBy: (CURRENT_USER? CURRENT_USER.username : "")
   };
   if(editId){
     var idx = RECORDS.findIndex(function(x){ return x.id===editId; });
+    rec.createdBy = RECORDS[idx].createdBy;
     RECORDS[idx] = rec;
     toast("Entry updated.");
   } else {
@@ -2034,15 +2444,16 @@ function renderRegister(){
     var tag = "<span class='tag "+cls+"'>"+esc(statusLabel(r.status))+"</span>";
     var tr = document.createElement("tr");
     tr.innerHTML =
-      "<td>"+(i+1)+"</td><td>"+esc(r.caseNo)+"</td><td>"+esc(r.title)+"</td><td>"+esc(r.courtRefNo)+"</td>"+
-      "<td>"+esc(r.institutionDate)+"</td><td>"+esc(r.subject)+"</td><td>"+tag+"</td>"+
-      "<td>"+esc(r.nextHearing)+"</td><td>"+esc(r.disposalDate)+"</td><td>"+esc(r.remarks)+"</td>"+
+      "<td>"+(i+1)+"</td><td data-col='caseNo'>"+esc(r.caseNo)+"</td><td data-col='title'>"+esc(r.title)+"</td><td data-col='courtRefNo'>"+esc(r.courtRefNo)+"</td>"+
+      "<td data-col='institutionDate'>"+esc(r.institutionDate)+"</td><td data-col='subject'>"+esc(r.subject)+"</td><td data-col='status'>"+tag+"</td>"+
+      "<td data-col='nextHearing'>"+esc(r.nextHearing)+"</td><td data-col='disposalDate'>"+esc(r.disposalDate)+"</td><td data-col='remarks'>"+esc(r.remarks)+"</td>"+
       "<td class='row-actions'><button class='btn ghost small' data-edit='"+r.id+"'>"+(lang==="ur"?"ترمیم":"Edit")+"</button>"+
       "<button class='btn danger small' data-del='"+r.id+"'>"+(lang==="ur"?"حذف":"Delete")+"</button></td>";
     body.appendChild(tr);
   });
   body.querySelectorAll("[data-edit]").forEach(function(el){ el.addEventListener("click", function(){ editRecord(el.dataset.edit); }); });
   body.querySelectorAll("[data-del]").forEach(function(el){ el.addEventListener("click", function(){ deleteRecord(el.dataset.del); }); });
+  applyRegisterColumnPrintCss();
 }
 ["rf_caseNo","rf_title","rf_status","rf_from"].forEach(function(id){
   document.getElementById(id).addEventListener("input", renderRegister);
@@ -2092,10 +2503,12 @@ document.getElementById("fm_saveBtn").addEventListener("click", function(){
     purpose: getSelectOrAddValue("fm_purpose","fm_purpose_new"),
     dateReceived: document.getElementById("fm_dateReceived").value,
     receivedBy: getSelectOrAddValue("fm_receivedBy","fm_receivedBy_new"),
-    remarks: document.getElementById("fm_remarks").value.trim()
+    remarks: document.getElementById("fm_remarks").value.trim(),
+    createdBy: (CURRENT_USER? CURRENT_USER.username : "")
   };
   if(fmEditId){
     var idx = FILE_MOVEMENTS.findIndex(function(x){ return x.id===fmEditId; });
+    rec.createdBy = FILE_MOVEMENTS[idx].createdBy;
     FILE_MOVEMENTS[idx] = rec;
     toast("Entry updated.");
   } else {
@@ -2174,15 +2587,16 @@ function renderFileMovement(){
     var tag = "<span class='tag "+(out?"pending":"disposed")+"'>"+esc(out? t("fm_st_out") : t("fm_st_received"))+"</span>";
     var tr = document.createElement("tr");
     tr.innerHTML =
-      "<td>"+(i+1)+"</td><td>"+esc(r.fileNo)+"</td><td>"+esc(r.titleField)+"</td><td>"+esc(r.sentFrom)+"</td>"+
-      "<td>"+esc(r.sentTo)+"</td><td>"+esc(r.dateSent)+"</td><td>"+esc(r.purpose)+"</td>"+
-      "<td>"+esc(r.dateReceived)+"</td><td>"+esc(r.receivedBy)+"</td><td>"+tag+"</td><td>"+esc(r.remarks)+"</td>"+
+      "<td>"+(i+1)+"</td><td data-col='fileNo'>"+esc(r.fileNo)+"</td><td data-col='titleField'>"+esc(r.titleField)+"</td><td data-col='sentFrom'>"+esc(r.sentFrom)+"</td>"+
+      "<td data-col='sentTo'>"+esc(r.sentTo)+"</td><td data-col='dateSent'>"+esc(r.dateSent)+"</td><td data-col='purpose'>"+esc(r.purpose)+"</td>"+
+      "<td data-col='dateReceived'>"+esc(r.dateReceived)+"</td><td data-col='receivedBy'>"+esc(r.receivedBy)+"</td><td data-col='status'>"+tag+"</td><td data-col='remarks'>"+esc(r.remarks)+"</td>"+
       "<td class='row-actions'><button class='btn ghost small' data-fmedit='"+r.id+"'>"+(lang==="ur"?"ترمیم":"Edit")+"</button>"+
       "<button class='btn danger small' data-fmdel='"+r.id+"'>"+(lang==="ur"?"حذف":"Delete")+"</button></td>";
     body.appendChild(tr);
   });
   body.querySelectorAll("[data-fmedit]").forEach(function(el){ el.addEventListener("click", function(){ editFm(el.dataset.fmedit); }); });
   body.querySelectorAll("[data-fmdel]").forEach(function(el){ el.addEventListener("click", function(){ deleteFm(el.dataset.fmdel); }); });
+  applyFileMovementColumnPrintCss();
 }
 ["fmf_fileNo","fmf_sentTo","fmf_status","fmf_from"].forEach(function(id){
   document.getElementById(id).addEventListener("input", renderFileMovement);
@@ -2199,10 +2613,202 @@ document.getElementById("fm_exportBtn").addEventListener("click", function(){
   downloadCSV("file_movement_register.csv", rows);
 });
 
+/* ================= LETTERS (Item 31: letter writing + WhatsApp) =================
+   A single record-per-letter register, printed on the site's own masthead (pbPrintMasthead /
+   pbPrintExtraFields / pbPrintSignfoot are already site-wide, not per-panel — see file header).
+   No column-selection here (Item 38): the browsing table has no data-col attributes on purpose,
+   so collectPanelColumns("letters") naturally finds none and colsConfigBtn shows its existing
+   "no printable table" toast — a letter prints as one formatted document, not a tabular report. */
+function resetLtForm(){
+  ltEditId = null;
+  document.getElementById("ltFormTitle").textContent = t("lt_addEntry");
+  document.getElementById("lt_saveBtn").textContent = t("btn_saveEntry");
+  document.getElementById("lt_cancelBtn").style.display = "none";
+  document.getElementById("lt_type").value = "formal";
+  document.getElementById("lt_date").value = todayStr();
+  LT_CASE_FIELDS.concat(["lt_refNo","lt_toName","lt_toDesignation","lt_whatsapp","lt_subject","lt_body"]).forEach(function(id){
+    document.getElementById(id).value = "";
+  });
+}
+document.getElementById("lt_saveBtn").addEventListener("click", function(){
+  var toName = document.getElementById("lt_toName").value.trim();
+  var subject = document.getElementById("lt_subject").value.trim();
+  var bodyText = document.getElementById("lt_body").value.trim();
+  if(!toName){ toast("To (name / office) is required."); return; }
+  if(!subject){ toast("Subject is required."); return; }
+  if(!bodyText){ toast("Letter body is required."); return; }
+  var letter = {
+    id: ltEditId || uid(),
+    type: document.getElementById("lt_type").value,
+    date: document.getElementById("lt_date").value || todayStr(),
+    refNo: document.getElementById("lt_refNo").value.trim(),
+    toName: toName,
+    toDesignation: document.getElementById("lt_toDesignation").value.trim(),
+    whatsapp: document.getElementById("lt_whatsapp").value.replace(/[^0-9]/g,""),
+    subject: subject,
+    body: bodyText,
+    createdBy: (CURRENT_USER? CURRENT_USER.username : "")
+  };
+  LT_CASE_FIELDS.forEach(function(id){ letter[ltCaseFieldKey(id)] = document.getElementById(id).value.trim(); });
+  if(ltEditId){
+    var idx = LETTERS.findIndex(function(x){ return x.id===ltEditId; });
+    letter.createdBy = LETTERS[idx].createdBy;
+    LETTERS[idx] = letter;
+    if(ltPreviewId===ltEditId) ltPreviewId = letter.id;
+    toast("Entry updated.");
+  } else {
+    LETTERS.push(letter);
+    toast("Entry saved.");
+  }
+  saveLetters();
+  resetLtForm();
+  renderLetters();
+});
+document.getElementById("lt_cancelBtn").addEventListener("click", resetLtForm);
+function editLt(id){
+  var rec = LETTERS.find(function(x){ return x.id===id; });
+  if(!rec) return;
+  ltEditId = id;
+  document.getElementById("ltFormTitle").textContent = t("form_editEntry");
+  document.getElementById("lt_saveBtn").textContent = t("btn_saveEntry");
+  document.getElementById("lt_cancelBtn").style.display = "inline-block";
+  document.getElementById("lt_type").value = rec.type || "formal";
+  document.getElementById("lt_date").value = rec.date || "";
+  document.getElementById("lt_refNo").value = rec.refNo || "";
+  document.getElementById("lt_toName").value = rec.toName || "";
+  document.getElementById("lt_toDesignation").value = rec.toDesignation || "";
+  document.getElementById("lt_whatsapp").value = rec.whatsapp || "";
+  document.getElementById("lt_subject").value = rec.subject || "";
+  document.getElementById("lt_body").value = rec.body || "";
+  LT_CASE_FIELDS.forEach(function(id){ document.getElementById(id).value = rec[ltCaseFieldKey(id)] || ""; });
+  document.getElementById("ltFormCard").scrollIntoView({behavior:"smooth"});
+}
+function deleteLt(id){
+  if(!confirm("Delete this letter?")) return;
+  LETTERS = LETTERS.filter(function(x){ return x.id!==id; });
+  STATE.letters = LETTERS;
+  if(ltPreviewId===id) ltPreviewId = null;
+  saveData({letters:[id]});
+  renderLetters();
+  toast("Entry deleted.");
+}
+function ltTypeLabel(type){ return type==="reminder"? t("lt_type_reminder") : t("lt_type_formal"); }
+function filteredLt(){
+  var type = document.getElementById("ltf_type").value;
+  var to = document.getElementById("ltf_to").value.trim().toLowerCase();
+  var subject = document.getElementById("ltf_subject").value.trim().toLowerCase();
+  return LETTERS.filter(function(r){
+    if(type && r.type!==type) return false;
+    if(to && (r.toName||"").toLowerCase().indexOf(to)===-1) return false;
+    if(subject && (r.subject||"").toLowerCase().indexOf(subject)===-1) return false;
+    return true;
+  });
+}
+function viewLetter(id){
+  ltPreviewId = id;
+  renderLetterPreview();
+  document.getElementById("ltPreviewCard").scrollIntoView({behavior:"smooth"});
+}
+function buildLetterWhatsAppText(letter){
+  return [t("lt_subjectLabel")+" "+(letter.subject||""), "", (letter.body||"")].join("\n");
+}
+function sendLetterWhatsapp(id){
+  var letter = LETTERS.find(function(x){ return x.id===id; });
+  if(!letter) return;
+  var digits = (letter.whatsapp||"").replace(/[^0-9]/g,"");
+  var url = "https://wa.me/"+digits+"?text="+encodeURIComponent(buildLetterWhatsAppText(letter));
+  window.open(url, "_blank");
+}
+function renderLetterPreview(){
+  var wrap = document.getElementById("ltPreviewBody");
+  var rec = ltPreviewId? LETTERS.find(function(x){ return x.id===ltPreviewId; }) : null;
+  if(!rec){
+    wrap.innerHTML = "<p class='lt-preview-empty'>"+esc(t("lt_noPreview"))+"</p>";
+    return;
+  }
+  var metaBits = [];
+  if(rec.refNo) metaBits.push("<span>"+esc(t("lt_refLabel"))+" <bdi>"+esc(rec.refNo)+"</bdi></span>");
+  metaBits.push("<span>"+esc(t("lt_dateLabel"))+" <bdi>"+esc(rec.date||"")+"</bdi></span>");
+  var toBits = esc(rec.toName||"") + (rec.toDesignation? (", "+esc(rec.toDesignation)) : "");
+  var caseBits = [];
+  LT_CASE_FIELDS.forEach(function(id){
+    var val = rec[ltCaseFieldKey(id)];
+    if(val){ caseBits.push("<span>"+esc(t(id))+": <bdi>"+esc(val)+"</bdi></span>"); }
+  });
+  var caseMetaHtml = caseBits.length? ("<div class='lt-preview-meta' style='margin-bottom:10px;'>"+caseBits.join("")+"</div>") : "";
+  wrap.innerHTML =
+    "<div class='lt-preview-meta'>"+metaBits.join("")+"</div>"+
+    "<div style='margin-bottom:10px;'>"+esc(t("lt_toLabel"))+" <bdi>"+toBits+"</bdi></div>"+
+    caseMetaHtml+
+    "<div class='lt-preview-subject'>"+esc(t("lt_subjectLabel"))+" "+esc(rec.subject)+"</div>"+
+    "<div class='lt-preview-body'>"+esc(rec.body)+"</div>"+
+    "<div class='lt-preview-actions'>"+
+      "<button class='btn ghost small' id='ltPreviewPrintBtn'>🖨️ "+esc(t("btn_printCurrent"))+"</button>"+
+      "<button class='btn ghost small' id='ltPreviewWaBtn'>"+esc(t("btn_sendWhatsapp"))+"</button>"+
+    "</div>";
+  document.getElementById("ltPreviewPrintBtn").addEventListener("click", function(){
+    document.getElementById("pbPrintExtraFields").innerHTML = buildPrintExtraFieldsHtml(currentPanelKey());
+    window.print();
+  });
+  document.getElementById("ltPreviewWaBtn").addEventListener("click", function(){ sendLetterWhatsapp(rec.id); });
+}
+function renderLetters(){
+  var lang = document.documentElement.getAttribute("data-ui-lang") || "en";
+  var list = filteredLt();
+  var total = LETTERS.length;
+  document.getElementById("ltCount").textContent = total+" "+(total===1? t("lt_entries_singular") : t("lt_entries_plural"));
+  document.getElementById("ltResultCount").textContent = (lang==="ur"? "دکھایا جا رہا ہے ":"Showing ")+list.length+(lang==="ur"? " از ":" of ")+total;
+
+  var body = document.getElementById("ltTableBody");
+  body.innerHTML = "";
+  if(list.length===0){
+    body.innerHTML = "<tr class='empty-row'><td colspan='6'>"+esc(t("lt_noLettersMatch"))+"</td></tr>";
+  }
+  list.slice().sort(function(a,b){ return (b.date||"").localeCompare(a.date||""); })
+  .forEach(function(r,i){
+    var tr = document.createElement("tr");
+    tr.innerHTML =
+      "<td>"+(i+1)+"</td><td>"+esc(r.date)+"</td><td>"+esc(ltTypeLabel(r.type))+"</td><td>"+esc(r.toName)+"</td><td>"+esc(r.subject)+"</td>"+
+      "<td class='row-actions'>"+
+      "<button class='btn ghost small view-only-btn' data-ltview='"+r.id+"'>"+esc(t("btn_viewPrint"))+"</button>"+
+      "<button class='btn ghost small view-only-btn' data-ltwa='"+r.id+"'>"+esc(t("btn_sendWhatsapp"))+"</button>"+
+      "<button class='btn ghost small' data-ltedit='"+r.id+"'>"+(lang==="ur"?"ترمیم":"Edit")+"</button>"+
+      "<button class='btn danger small' data-ltdel='"+r.id+"'>"+(lang==="ur"?"حذف":"Delete")+"</button></td>";
+    body.appendChild(tr);
+  });
+  body.querySelectorAll("[data-ltview]").forEach(function(el){ el.addEventListener("click", function(){ viewLetter(el.dataset.ltview); }); });
+  body.querySelectorAll("[data-ltwa]").forEach(function(el){ el.addEventListener("click", function(){ sendLetterWhatsapp(el.dataset.ltwa); }); });
+  body.querySelectorAll("[data-ltedit]").forEach(function(el){ el.addEventListener("click", function(){ editLt(el.dataset.ltedit); }); });
+  body.querySelectorAll("[data-ltdel]").forEach(function(el){ el.addEventListener("click", function(){ deleteLt(el.dataset.ltdel); }); });
+
+  if(ltPreviewId && !LETTERS.some(function(x){ return x.id===ltPreviewId; })){ ltPreviewId = null; }
+  renderLetterPreview();
+}
+["ltf_type","ltf_to","ltf_subject"].forEach(function(id){
+  document.getElementById(id).addEventListener("input", renderLetters);
+  document.getElementById(id).addEventListener("change", renderLetters);
+});
+document.getElementById("ltf_clear").addEventListener("click", function(){
+  ["ltf_type","ltf_to","ltf_subject"].forEach(function(id){ document.getElementById(id).value=""; });
+  renderLetters();
+});
+document.getElementById("lt_exportBtn").addEventListener("click", function(){
+  var list = filteredLt();
+  var rows = [["Sr#","Date","Type","Reference No.","To","Designation","WhatsApp","Subject",
+    "Case No.","Title of Case","Versus","F.I.R No.","FIR date","Police Station","District","Tehsil","Bench No.","Sr No.","Body"]];
+  list.forEach(function(r,i){
+    var row = [i+1, r.date, ltTypeLabel(r.type), r.refNo, r.toName, r.toDesignation, r.whatsapp, r.subject];
+    LT_CASE_FIELDS.forEach(function(id){ row.push(r[ltCaseFieldKey(id)]); });
+    row.push(r.body);
+    rows.push(row);
+  });
+  downloadCSV("letters_register.csv", rows);
+});
+
 /* ================= BACKUP / RESTORE ================= */
 function doBackup(){
   var rows = ["﻿"];
-  var payload = { savedAt: new Date().toISOString(), records: RECORDS, fileMovements: FILE_MOVEMENTS, customRegisterDefs: CUSTOM_DEFS, customRecords: CUSTOM_RECORDS, judges: JUDGES, benchEntries: BENCH_ENTRIES, dutyRoster: DUTY_ROSTER };
+  var payload = { savedAt: new Date().toISOString(), records: RECORDS, fileMovements: FILE_MOVEMENTS, customRegisterDefs: CUSTOM_DEFS, customRecords: CUSTOM_RECORDS, judges: JUDGES, benchEntries: BENCH_ENTRIES, dutyRoster: DUTY_ROSTER, letters: LETTERS };
   var blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
   var url = URL.createObjectURL(blob);
   var a = document.createElement("a");
@@ -2230,6 +2836,7 @@ document.getElementById("restoreFile").addEventListener("change", function(e){
       JUDGES = Array.isArray(incoming.judges)? incoming.judges : JUDGES;
       BENCH_ENTRIES = Array.isArray(incoming.benchEntries)? incoming.benchEntries : [];
       DUTY_ROSTER = Array.isArray(incoming.dutyRoster)? incoming.dutyRoster : [];
+      LETTERS = Array.isArray(incoming.letters)? incoming.letters : [];
       STATE.records = RECORDS;
       STATE.fileMovements = FILE_MOVEMENTS;
       STATE.customRegisterDefs = CUSTOM_DEFS;
@@ -2237,6 +2844,7 @@ document.getElementById("restoreFile").addEventListener("change", function(e){
       STATE.judges = JUDGES;
       STATE.benchEntries = BENCH_ENTRIES;
       STATE.dutyRoster = DUTY_ROSTER;
+      STATE.letters = LETTERS;
       forceOverwriteData();
       resetForm();
       resetFmForm();
@@ -2245,6 +2853,7 @@ document.getElementById("restoreFile").addEventListener("change", function(e){
       resetJrForm();
       resetDrForm();
       resetJmForm();
+      resetLtForm();
       renderRegister();
       renderFileMovement();
       renderCustomRegister();
@@ -2252,6 +2861,7 @@ document.getElementById("restoreFile").addEventListener("change", function(e){
       renderJudicial();
       renderJudgesManage();
       renderDutyRoster();
+      renderLetters();
       toast("Data restored from backup file.");
     }catch(err){
       toast("Could not read this file — is it a Record Section backup?");
@@ -2262,7 +2872,10 @@ document.getElementById("restoreFile").addEventListener("change", function(e){
 });
 
 /* ================= PRINT ================= */
-document.getElementById("globalPrintBtn").addEventListener("click", function(){ window.print(); });
+document.getElementById("globalPrintBtn").addEventListener("click", function(){
+  document.getElementById("pbPrintExtraFields").innerHTML = buildPrintExtraFieldsHtml(currentPanelKey());
+  window.print();
+});
 
 /* ================= BOOT ================= */
 switchPanels();
@@ -2276,12 +2889,14 @@ resetFmForm();
 resetJrForm();
 resetDrForm();
 resetJmForm();
+resetLtForm();
 renderSidenav();
 renderRegister();
 renderFileMovement();
 renderJudicial();
 renderJudgesManage();
 renderDutyRoster();
+renderLetters();
 wireSelectOrAdd("r_subject","r_subject_new");
 wireSelectOrAdd("fm_sentFrom","fm_sentFrom_new");
 wireSelectOrAdd("fm_sentTo","fm_sentTo_new");
