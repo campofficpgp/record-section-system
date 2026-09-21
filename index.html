@@ -59,6 +59,27 @@
     --text:#1E2A2A; --muted:#54696A;
     --shadow:0 1px 2px rgba(7,87,83,0.08), 0 1px 1px rgba(7,87,83,0.04);
   }
+  [data-theme="night"]{
+    --navy:#1c2436; --navy-dark:#12141c; --navy-tint:#232838;
+    --amber:#d4a13d; --amber-tint:#2a2416;
+    --bg:#12141c; --surface:#1c2030; --border:#2a2f42; --border-strong:#3a3f55;
+    --text:#e6e8ef; --muted:#8b93ab;
+    --shadow:0 1px 2px rgba(0,0,0,0.4), 0 1px 1px rgba(0,0,0,0.3);
+  }
+  [data-theme="sepia"]{
+    --navy:#6b4a26; --navy-dark:#4a3319; --navy-tint:#f4ecd8;
+    --amber:#8a5a2b; --amber-tint:#efe4c8;
+    --bg:#f4ecd8; --surface:#efe4c8; --border:#e2d3ac; --border-strong:#cbb98a;
+    --text:#4a3b28; --muted:#7d6b4f;
+    --shadow:0 1px 2px rgba(74,51,25,0.12), 0 1px 1px rgba(74,51,25,0.08);
+  }
+  [data-theme="slate"]{
+    --navy:#3b4758; --navy-dark:#2a323f; --navy-tint:#eef1f4;
+    --amber:#a68b5b; --amber-tint:#eef1f4;
+    --bg:#eef1f4; --surface:#ffffff; --border:#dde3ea; --border-strong:#c3ccd6;
+    --text:#2e3440; --muted:#6d7787;
+    --shadow:0 1px 2px rgba(46,52,64,0.08), 0 1px 1px rgba(46,52,64,0.04);
+  }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
   body{background:var(--bg);color:var(--text);font-family:"Segoe UI",system-ui,-apple-system,"Noto Sans",Arial,sans-serif;font-size:14px;line-height:1.45;}
@@ -289,6 +310,9 @@
       <option value="green">سرکاری سبز / Green</option>
       <option value="ivory">کاغذی سفید / Ivory</option>
       <option value="teal">جدید ٹیل / Teal</option>
+      <option value="night">تاریک موڈ 🌙 / Night Mode</option>
+      <option value="sepia">نرم کاغذی 📜 / Sepia</option>
+      <option value="slate">نرم خاکستری 🩶 / Soft Slate</option>
     </select>
     <button id="globalPrintBtn" data-i18n="btn_printCurrent">Print current view</button>
     <button id="hfConfigBtn" type="button" class="btn ghost small" style="display:none;" title="Report header/footer fields / رپورٹ ہیڈر/فوٹر فیلڈز">☰ Header/Footer</button>
@@ -1724,7 +1748,7 @@ document.getElementById("dr_exportBtn").addEventListener("click", function(){
 });
 
 /* ================= THEME (per-user; follows the user's login across every camp-office system) ================= */
-var THEME_NAMES = ["navy","green","ivory","teal"];
+var THEME_NAMES = ["navy","green","ivory","teal","night","sepia","slate"];
 function applyTheme(name){
   if(THEME_NAMES.indexOf(name)===-1) name = "navy";
   document.documentElement.setAttribute("data-theme", name);
