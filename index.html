@@ -2001,7 +2001,7 @@ document.getElementById("logoutBtn").addEventListener("click", function(){ auth.
 auth.onAuthStateChanged(function(user){
   if(user){
     db.collection("users").doc(user.uid).get().then(function(snap){
-      var role = snap.exists? (snap.data().role||"guest") : "guest";
+      var role = snap.exists? (snap.data().role || ((snap.data().roleV2==="admin" || snap.data().roleV2==="super_admin") ? "admin" : "guest")) : "guest";
       var theme = snap.exists? (snap.data().theme||null) : null;
       var signatureURL = snap.exists? (snap.data().signatureURL||"") : "";
       CURRENT_USER = {uid:user.uid, username:user.email, role:role, signatureURL:signatureURL};
