@@ -1850,11 +1850,13 @@ document.getElementById("themeSwitcher").addEventListener("change", function(){
 /* ================= AUTH ================= */
 var CURRENT_USER = null;
 function isAdmin(){ return !!(CURRENT_USER && CURRENT_USER.role==="admin"); }
-function showSetupScreen(){ document.getElementById("authSetupScreen").style.display="flex"; document.getElementById("authLoginScreen").style.display="none"; document.getElementById("appMain").style.display="none"; }
-function showLoginScreen(){
-  document.getElementById("authLoginScreen").style.display="flex"; document.getElementById("authSetupScreen").style.display="none"; document.getElementById("appMain").style.display="none";
-  document.getElementById("login_username").value=""; document.getElementById("login_password").value=""; document.getElementById("loginError").textContent="";
-}
+/* Sign-in and account creation now happen in ONE place only — the main Camp
+   Office portal (camp-office-suite, one level up). Signing in there signs
+   you in here too (same shared Firebase project/session), so this page
+   never needs to show its own login/sign-up form: if it ever finds itself
+   signed out, it just sends the visitor back to the portal to sign in. */
+function showSetupScreen(){ location.href = "../"; }
+function showLoginScreen(){ location.href = "../"; }
 function showAppScreen(){
   document.getElementById("authSetupScreen").style.display="none"; document.getElementById("authLoginScreen").style.display="none"; document.getElementById("appMain").style.display="block";
   var curTheme = document.documentElement.getAttribute("data-theme") || "navy";
