@@ -1256,6 +1256,72 @@ var firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 var auth = firebase.auth();
 var db = firebase.firestore();
+
+/* ===== Super Admin Security PIN Gate =====
+   Extra check specifically for the super_admin role: even if this browser
+   already has the Firebase sign-in (and maybe a saved/autofilled password),
+   a super_admin must also enter a security PIN once per browser session
+   before the app opens. The PIN itself is never stored -- only a SHA-256
+   hash (salted with the user's own uid) is saved on their users/{uid} doc,
+   so no one reading that document ever sees the real PIN. */
+function spinHash(uid, pin){
+  var bytes = new TextEncoder().encode("campoffice-pin-v1:" + uid + ":" + pin);
+  return crypto.subtle.digest("SHA-256", bytes).then(function(buf){
+    return Array.prototype.map.call(new Uint8Array(buf), function(b){ return b.toString(16).padStart(2,"0"); }).join("");
+  });
+}
+function spinVerifiedKey(uid){ return "spinVerified_" + uid; }
+function spinIsVerified(uid){ try{ return sessionStorage.getItem(spinVerifiedKey(uid)) === "1"; }catch(e){ return false; } }
+function spinMarkVerified(uid){ try{ sessionStorage.setItem(spinVerifiedKey(uid), "1"); }catch(e){} }
+function spinGate(uid, data, proceedFn){
+  if(!data || data.roleV2 !== "super_admin"){ proceedFn(); return; }
+  if(spinIsVerified(uid)){ proceedFn(); return; }
+  var hasPin = !!data.adminPinHash;
+  var ov = document.getElementById("spinGateOverlay");
+  if(!ov){ proceedFn(); return; } /* gate markup missing -- fail open rather than lock the app */
+  var input1 = document.getElementById("spinGateInput1");
+  var input2 = document.getElementById("spinGateInput2");
+  var err = document.getElementById("spinGateError");
+  var btn = document.getElementById("spinGateBtn");
+  var signOutLink = document.getElementById("spinGateSignOut");
+  err.textContent = ""; input1.value = ""; input2.value = "";
+  input2.style.display = hasPin ? "none" : "block";
+  document.getElementById("spinGateTitle").textContent = hasPin ? "سیکورٹی پن درج کریں" : "سیکورٹی پن سیٹ کریں";
+  document.getElementById("spinGateSub").textContent = hasPin
+    ? "سپر ایڈمن اکاؤنٹ کے تحفظ کے لیے جاری رکھنے سے پہلے اپنا سیکورٹی پن درج کریں۔"
+    : "سپر ایڈمن اکاؤنٹ کے تحفظ کے لیے 4 سے 8 ہندسوں کا پن سیٹ کریں — آئندہ ہر نئے براؤزر سیشن میں یہ پوچھا جائے گا۔";
+  ov.style.display = "flex";
+  input1.focus();
+  function finish(){ spinMarkVerified(uid); ov.style.display = "none"; proceedFn(); }
+  function submit(){
+    var pin = input1.value.trim();
+    err.textContent = "";
+    if(!/^[0-9]{4,8}$/.test(pin)){ err.textContent = "پن صرف 4 سے 8 ہندسوں پر مشتمل ہونا چاہیے۔"; return; }
+    btn.disabled = true;
+    if(!hasPin){
+      var pin2 = input2.value.trim();
+      if(pin !== pin2){ btn.disabled = false; err.textContent = "دونوں پن مماثل نہیں ہیں۔"; return; }
+      spinHash(uid, pin).then(function(hash){
+        return db.collection("users").doc(uid).update({ adminPinHash: hash });
+      }).then(function(){ btn.disabled = false; finish(); })
+        .catch(function(e){ btn.disabled = false; err.textContent = "پن محفوظ نہیں ہو سکا: " + e.message; });
+    } else {
+      db.collection("users").doc(uid).get().then(function(snap){
+        var storedHash = (snap.exists && snap.data().adminPinHash) || "";
+        return spinHash(uid, pin).then(function(hash){ return hash === storedHash; });
+      }).then(function(ok){
+        btn.disabled = false;
+        if(ok){ finish(); }
+        else{ err.textContent = "غلط پن، دوبارہ کوشش کریں۔"; input1.value = ""; input1.focus(); }
+      }).catch(function(e){ btn.disabled = false; err.textContent = "تصدیق میں خرابی: " + e.message; });
+    }
+  }
+  btn.onclick = submit;
+  input1.onkeydown = function(ev){ if(ev.key === "Enter"){ if(hasPin) submit(); else input2.focus(); } };
+  input2.onkeydown = function(ev){ if(ev.key === "Enter") submit(); };
+  signOutLink.onclick = function(ev){ ev.preventDefault(); ov.style.display = "none"; auth.signOut(); };
+}
+
 /* ===== Digital signature uploads use Cloudinary (same free account as the Photo Gallery).
    Only the cloud name and an UNSIGNED upload preset are used — never the API Secret. ===== */
 var CLOUDINARY_CLOUD_NAME = "rjsudteo";
@@ -2086,12 +2152,15 @@ document.getElementById("logoutBtn").addEventListener("click", function(){ auth.
 auth.onAuthStateChanged(function(user){
   if(user){
     db.collection("users").doc(user.uid).get().then(function(snap){
-      var role = snap.exists? (snap.data().role || ((snap.data().roleV2==="admin" || snap.data().roleV2==="super_admin") ? "admin" : "guest")) : "guest";
-      var theme = snap.exists? (snap.data().theme||null) : null;
-      var signatureURL = snap.exists? (snap.data().signatureURL||"") : "";
-      CURRENT_USER = {uid:user.uid, username:user.email, role:role, signatureURL:signatureURL};
-      if(theme) applyTheme(theme);
-      fetchStateFromFirestore(function(){ showAppScreen(); startRealtimeSync(); });
+      var d = snap.exists? snap.data() : {};
+      var role = d.role || ((d.roleV2==="admin" || d.roleV2==="super_admin") ? "admin" : "guest");
+      var theme = d.theme||null;
+      var signatureURL = d.signatureURL||"";
+      spinGate(user.uid, d, function(){
+        CURRENT_USER = {uid:user.uid, username:user.email, role:role, signatureURL:signatureURL};
+        if(theme) applyTheme(theme);
+        fetchStateFromFirestore(function(){ showAppScreen(); startRealtimeSync(); });
+      });
     }).catch(function(err){ toast("Could not load your account: "+err.message); });
   } else {
     CURRENT_USER = null;
@@ -3141,5 +3210,19 @@ wireSelectOrAdd("dr_court","dr_court_new");
 </script>
     </div><!-- /.main-col -->
   </div><!-- /.app-shell -->
+<!-- ===== Super Admin Security PIN Gate ===== -->
+<div id="spinGateOverlay" style="display:none; position:fixed; inset:0; background:rgba(20,30,40,.55); z-index:99999; align-items:center; justify-content:center; padding:16px;">
+  <div style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); padding:24px; max-width:340px; width:100%; direction:rtl; font-family:inherit;">
+    <div id="spinGateTitle" style="font-size:17px; font-weight:700; color:var(--text); margin-bottom:6px;"></div>
+    <div id="spinGateSub" style="font-size:13px; color:var(--muted); margin-bottom:14px; line-height:1.5;"></div>
+    <input type="password" inputmode="numeric" autocomplete="off" id="spinGateInput1" placeholder="پن درج کریں" style="width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid var(--border-strong); border-radius:6px; font-size:16px; margin-bottom:10px; text-align:center; letter-spacing:4px;">
+    <input type="password" inputmode="numeric" autocomplete="off" id="spinGateInput2" placeholder="پن دوبارہ درج کریں" style="width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid var(--border-strong); border-radius:6px; font-size:16px; margin-bottom:10px; text-align:center; letter-spacing:4px;">
+    <div id="spinGateError" style="color:var(--danger); font-size:13px; min-height:18px; margin-bottom:8px;"></div>
+    <button type="button" id="spinGateBtn" style="width:100%; background:var(--navy); color:#fff; border:1px solid var(--navy); padding:10px; border-radius:6px; font-size:15px; font-weight:600; cursor:pointer;">تصدیق کریں</button>
+    <div style="text-align:center; margin-top:10px;">
+      <a href="#" id="spinGateSignOut" style="font-size:12px; color:var(--muted); text-decoration:underline;">یہ میں نہیں ہوں — سائن آؤٹ کریں</a>
+    </div>
+  </div>
+</div>
 </body>
 </html>
