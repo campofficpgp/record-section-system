@@ -23,6 +23,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <!-- Sends the super-admin security code by email (see "Super Admin Email OTP Gate" below) -->
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
@@ -399,6 +400,7 @@ html,body{overflow-x:hidden;}
       <option value="slate">نرم خاکستری 🩶 / Soft Slate</option>
     </select>
     <button id="globalPrintBtn" data-i18n="btn_printCurrent">Print current view</button>
+    <button id="globalPdfBtn" data-i18n="btn_downloadPdf">📄 Download PDF</button>
     <button id="hfConfigBtn" type="button" class="btn ghost small" style="display:none;" title="Report header/footer fields / رپورٹ ہیڈر/فوٹر فیلڈز">☰ Header/Footer</button>
     <button id="colsConfigBtn" type="button" class="btn ghost small" style="display:none;" title="Choose which columns to print / پرنٹ کے لیے کالم منتخب کریں">☰ Select Columns</button>
     <span><span data-i18n="lbl_signedInAs">Signed in as</span> <b id="currentUserLabel">—</b> <span class="role-badge" id="currentUserRole"></span></span>
@@ -1040,7 +1042,7 @@ en: {
   app_title:"Record Section — Case Registers",
   app_subtitle:"Jail Petition · Criminal Appeal · Murder Reference · State Appeal · State Review · Criminal Petition · Criminal Misc. · Criminal Review · Suo Motu / HRC",
   btn_cancelEdit:"Cancel edit", btn_clearFilters:"Clear filters", btn_exportCsv:"Export visible rows (CSV)",
-  btn_printCurrent:"Print current view", btn_saveEntry:"Save entry",
+  btn_printCurrent:"Print current view", btn_saveEntry:"Save entry", btn_downloadPdf:"📄 Download PDF",
   btn_backup:"Backup (save file)", btn_restore:"Restore from file",
   footer_note:"Record Section — Case Registers — data is shared online with the whole office through this system's Firebase database. Use \"Backup\" regularly as an extra safety copy.",
   form_editEntry:"Edit entry",
@@ -1108,7 +1110,7 @@ ur: {
   app_title:"ریکارڈ سیکشن — کیس رجسٹرز",
   app_subtitle:"جیل پٹیشن · کریمنل اپیل · مرڈر ریفرنس · ریاستی اپیل · ریاستی ریویو پٹیشن · کریمنل پٹیشن · کریمنل مسک · کریمنل ریویو · سو موٹو / HRC",
   btn_cancelEdit:"ترمیم منسوخ کریں", btn_clearFilters:"فلٹرز صاف کریں", btn_exportCsv:"نظر آنے والی قطاریں ایکسپورٹ کریں (CSV)",
-  btn_printCurrent:"موجودہ صفحہ پرنٹ کریں", btn_saveEntry:"اندراج محفوظ کریں",
+  btn_printCurrent:"موجودہ صفحہ پرنٹ کریں", btn_saveEntry:"اندراج محفوظ کریں", btn_downloadPdf:"📄 PDF ڈاؤن لوڈ کریں",
   btn_backup:"بیک اپ (فائل محفوظ کریں)", btn_restore:"فائل سے بحال کریں",
   footer_note:"ریکارڈ سیکشن — کیس رجسٹرز — ڈیٹا اس سسٹم کے Firebase ڈیٹا بیس کے ذریعے پورے دفتر کے ساتھ آن لائن مشترک ہے۔ اضافی حفاظت کے لیے باقاعدگی سے \"بیک اپ\" استعمال کریں۔",
   form_editEntry:"اندراج میں ترمیم",
@@ -2963,11 +2965,15 @@ function renderLetterPreview(){
     "<div class='lt-preview-body'>"+esc(rec.body)+"</div>"+
     "<div class='lt-preview-actions'>"+
       "<button class='btn ghost small' id='ltPreviewPrintBtn'>🖨️ "+esc(t("btn_printCurrent"))+"</button>"+
+      "<button class='btn ghost small' id='ltPreviewPdfBtn'>"+esc(t("btn_downloadPdf"))+"</button>"+
       "<button class='btn ghost small' id='ltPreviewWaBtn'>"+esc(t("btn_sendWhatsapp"))+"</button>"+
     "</div>";
   document.getElementById("ltPreviewPrintBtn").addEventListener("click", function(){
     document.getElementById("pbPrintExtraFields").innerHTML = buildPrintExtraFieldsHtml(currentPanelKey());
     window.print();
+  });
+  document.getElementById("ltPreviewPdfBtn").addEventListener("click", function(){
+    pdfDownload(document.getElementById("ltPreviewCard"), "letter.pdf", ".lt-preview-actions");
   });
   document.getElementById("ltPreviewWaBtn").addEventListener("click", function(){ sendLetterWhatsapp(rec.id); });
 }
@@ -3095,6 +3101,62 @@ document.getElementById("globalPrintBtn").addEventListener("click", function(){
   document.getElementById("pbPrintExtraFields").innerHTML = buildPrintExtraFieldsHtml(currentPanelKey());
   window.print();
 });
+
+/* ================= PDF Download helper (html2pdf.js) =================
+   The letter preview has its own dedicated printable element (#ltPreviewCard)
+   so pdfDownload() can snapshot it directly (its own action buttons are
+   skipped via ignoreSelector). For the panel "whole current view" there is
+   no dedicated printable div -- normally the @media print CSS is what hides
+   the sidebar/toolbar/table/etc. (including the Letters panel's own rule
+   that hides its table so only the preview card shows). withPrintCssActive()
+   temporarily turns those @media print rules into normal (always-on) rules,
+   takes the snapshot, then removes them again -- so the PDF matches exactly
+   what Print would produce. This never calls window.print(), so it does not
+   trigger the "Before Printing" sign-off modal below -- PDF download is a
+   plain export, not a signed printout. */
+function withPrintCssActive(fn){
+  var css = "";
+  for(var i=0;i<document.styleSheets.length;i++){
+    try{
+      var rules = document.styleSheets[i].cssRules;
+      if(!rules) continue;
+      for(var j=0;j<rules.length;j++){
+        var r = rules[j];
+        if(r.media && r.media.mediaText && r.media.mediaText.indexOf("print")!==-1){
+          for(var k=0;k<r.cssRules.length;k++){ css += r.cssRules[k].cssText + "\n"; }
+        }
+      }
+    }catch(e){}
+  }
+  var styleTag = document.createElement("style");
+  styleTag.textContent = css;
+  document.head.appendChild(styleTag);
+  var cleanup = function(){ try{ document.head.removeChild(styleTag); }catch(e){} };
+  try{ fn(cleanup); }catch(e){ cleanup(); throw e; }
+}
+function pdfCapture(el, filename, orientation, ignoreSelector, onDone){
+  if(!el){ alert("Nothing to export yet."); if(onDone) onDone(); return; }
+  if(typeof html2pdf === "undefined"){ alert("PDF library did not load — check your internet connection and try again."); if(onDone) onDone(); return; }
+  html2pdf().set({
+    margin: 8,
+    filename: filename || "document.pdf",
+    image: { type: "jpeg", quality: 0.97 },
+    html2canvas: {
+      scale: 2, useCORS: true, allowTaint: true, height: el.scrollHeight, windowHeight: el.scrollHeight,
+      ignoreElements: ignoreSelector ? function(node){ return node.matches && node.matches(ignoreSelector); } : undefined
+    },
+    jsPDF: { unit: "mm", format: "a4", orientation: orientation || "portrait" },
+    pagebreak: { mode: ["css", "legacy"] }
+  }).from(el).save().then(function(){ if(onDone) onDone(); }).catch(function(){ if(onDone) onDone(); });
+}
+function pdfDownload(el, filename, ignoreSelector){ pdfCapture(el, filename, "portrait", ignoreSelector, null); }
+function downloadCurrentViewPDF(){
+  document.getElementById("pbPrintExtraFields").innerHTML = buildPrintExtraFieldsHtml(currentPanelKey());
+  withPrintCssActive(function(cleanup){
+    pdfCapture(document.body, (currentPanelKey()||"report")+".pdf", "portrait", null, cleanup);
+  });
+}
+document.getElementById("globalPdfBtn").addEventListener("click", downloadCurrentViewPDF);
 
 /* ================= BOOT ================= */
 switchPanels();
