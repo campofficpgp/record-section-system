@@ -2193,7 +2193,7 @@ auth.onAuthStateChanged(function(user){
   if(user){
     db.collection("users").doc(user.uid).get().then(function(snap){
       var d = snap.exists? snap.data() : {};
-      var role = d.role || ((d.roleV2==="admin" || d.roleV2==="super_admin") ? "admin" : "guest");
+      var role = (d.roleV2==="admin" || d.roleV2==="super_admin") ? "admin" : "guest"; /* roleV2 is the one true source now -- a stale legacy "role" field on the doc must never override it */
       var theme = d.theme||null;
       var signatureURL = d.signatureURL||"";
       spinGate(user.uid, d, function(){
