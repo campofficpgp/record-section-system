@@ -1280,8 +1280,14 @@ function spinHash(uid, code){
   });
 }
 function spinVerifiedKey(uid){ return "spinVerified_" + uid; }
-function spinIsVerified(uid){ try{ return sessionStorage.getItem(spinVerifiedKey(uid)) === "1"; }catch(e){ return false; } }
-function spinMarkVerified(uid){ try{ sessionStorage.setItem(spinVerifiedKey(uid), "1"); }catch(e){} }
+/* Verification now persists in localStorage (shared across every tab/system on this
+   origin, and across browser restarts) instead of sessionStorage (which was scoped to
+   a single tab and made every other open system/tab ask for a fresh OTP even right
+   after a successful one). It is cleared explicitly on sign-out below, so signing out
+   and back in still asks for a fresh code -- only "staying signed in" skips it. */
+function spinIsVerified(uid){ try{ return localStorage.getItem(spinVerifiedKey(uid)) === "1"; }catch(e){ return false; } }
+function spinMarkVerified(uid){ try{ localStorage.setItem(spinVerifiedKey(uid), "1"); }catch(e){} }
+function spinClearVerified(uid){ try{ if(uid) localStorage.removeItem(spinVerifiedKey(uid)); }catch(e){} }
 function spinGenerateCode(){ return String(Math.floor(100000 + Math.random()*900000)); }
 function spinSendCode(uid, email){
   var code = spinGenerateCode();
@@ -2197,6 +2203,7 @@ auth.onAuthStateChanged(function(user){
       });
     }).catch(function(err){ toast("Could not load your account: "+err.message); });
   } else {
+    spinClearVerified(CURRENT_USER && CURRENT_USER.uid);
     CURRENT_USER = null;
     if(unsubscribeSharedDoc){ unsubscribeSharedDoc(); unsubscribeSharedDoc=null; }
     showLoginScreen();
