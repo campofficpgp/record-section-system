@@ -133,6 +133,24 @@ html,body{overflow-x:hidden;}
   .panel-head p{margin:4px 0 0;color:var(--muted);font-size:12.5px;max-width:680px;}
   .count-chip{font-size:11.5px;background:var(--navy-tint);color:var(--navy-dark);border-radius:999px;padding:2px 10px;font-weight:600;}
 
+  /* ---------- Help / Guide overlay ---------- */
+  .help-shell{background:#fff;width:100%;max-width:960px;max-height:92vh;overflow:auto;border-radius:8px;box-shadow:0 12px 40px rgba(0,0,0,.4);}
+  .help-toolbar{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-bottom:1px solid var(--border);background:#F7F6F3;position:sticky;top:0;z-index:2;}
+  .help-toolbar h2{font-size:17px;}
+  .help-body{padding:22px 26px 30px;}
+  .help-intro{font-size:13.5px;color:var(--text);line-height:1.6;margin:0 0 4px;}
+  .help-steps{margin:0;padding-left:20px;}
+  .help-steps li{margin-bottom:7px;font-size:13px;line-height:1.55;color:var(--text);}
+  .help-steps li:last-child{margin-bottom:0;}
+  details.faq-item{border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px;background:#fff;}
+  details.faq-item summary{padding:11px 14px;cursor:pointer;font-weight:600;font-size:13.2px;color:var(--navy-dark);list-style:none;position:relative;padding-right:30px;}
+  details.faq-item summary::-webkit-details-marker{display:none;}
+  details.faq-item summary::after{content:"+";position:absolute;right:14px;top:9px;font-size:17px;color:var(--muted);}
+  details.faq-item[open] summary::after{content:"\2212";}
+  details.faq-item summary:hover{background:var(--navy-tint);}
+  details.faq-item .faq-answer{padding:0 14px 13px;font-size:13px;line-height:1.6;color:var(--text);}
+  @media print{ .help-shell{display:none !important;} }
+
   .grid{display:grid;gap:12px;}
   .grid.cols-4{grid-template-columns:repeat(4,1fr);}
   .grid.cols-3{grid-template-columns:repeat(3,1fr);}
@@ -401,11 +419,93 @@ html,body{overflow-x:hidden;}
     <button id="globalPdfBtn" title="Choose 'Save as PDF' in the print window" data-i18n="btn_downloadPdf">📄 Download PDF</button>
     <button id="hfConfigBtn" type="button" class="btn ghost small" style="display:none;" title="Report header/footer fields / رپورٹ ہیڈر/فوٹر فیلڈز">☰ Header/Footer</button>
     <button id="colsConfigBtn" type="button" class="btn ghost small" style="display:none;" title="Choose which columns to print / پرنٹ کے لیے کالم منتخب کریں">☰ Select Columns</button>
+    <button id="btnHelp" data-i18n="nav_help">Help / Guide</button>
     <span><span data-i18n="lbl_signedInAs">Signed in as</span> <b id="currentUserLabel">—</b> <span class="role-badge" id="currentUserRole"></span></span>
     <a href="../" class="btn ghost small" title="Home / پورٹل پر واپس جائیں" style="text-decoration:none;">🏠 Home</a>
     <a href="../#ads" class="btn ghost small" title="اشتہارات دیکھیں / View Advertisements" style="text-decoration:none;">📢 اشتہارات / Ads</a>
       <button id="logoutBtn" data-i18n="btn_logout">Log out</button>
     <img class="topbar-logo-sm" src="logo-public-prosecution.png" alt="Public Prosecution Punjab" style="height:26px;width:auto;">
+  </div>
+</div>
+
+<div class="fullscreen-overlay" id="helpOverlay" style="display:none;">
+  <div class="help-shell">
+    <div class="help-toolbar">
+      <h2 data-i18n="help_title">Help &amp; User Guide</h2>
+      <button class="btn ghost" id="helpCloseBtn" data-i18n="btn_close">Close</button>
+    </div>
+    <div class="help-body">
+      <p class="help-intro" data-i18n="help_introText">This system is shared by the whole office — everything you enter is saved online immediately and every other signed-in user sees the same information. Only an Administrator can add, edit, or delete an entry in any register; a Guest can view, search, and print everything.</p>
+
+      <div class="card">
+        <h3 data-i18n="help_registers_title">Registers &amp; Custom Registers</h3>
+        <ol class="help-steps">
+          <li data-i18n="help_registers_s1">"Registers" in the sidebar lists every register this office keeps — some are built in, and an Administrator can add more from "⚙ Manage Custom Registers".</li>
+          <li data-i18n="help_registers_s2">A custom register is defined once (its name and fields), then everyone can add entries to it just like any built-in register.</li>
+          <li data-i18n="help_registers_s3">The File Movement Register specifically tracks a file sent out (to whom, when) until it's received back, so nothing gets lost in transit.</li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <h3 data-i18n="help_judicial_title">Judicial Roster</h3>
+        <ol class="help-steps">
+          <li data-i18n="help_judicial_s1">"Bench &amp; Cause List" records which judges sit on which bench, and the cases/nature of cases listed there, for a chosen date.</li>
+          <li data-i18n="help_judicial_s2">"Duty Roster" tracks staff duty assignments separately from the bench listing.</li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <h3 data-i18n="help_letters_title">Letters</h3>
+        <ol class="help-steps">
+          <li data-i18n="help_letters_s1">Compose a letter with its recipient, subject and body, then Save — it's added to the Letters list below.</li>
+          <li data-i18n="help_letters_s2">Open any saved letter to Print it, download it as a PDF, or send it directly via WhatsApp.</li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <h3 data-i18n="help_faqTitle">Frequently asked questions</h3>
+        <details class="faq-item">
+          <summary data-i18n="help_faq1_q">I signed up but I can't add, edit, or delete anything — why?</summary>
+          <div class="faq-answer" data-i18n="help_faq1_a">New accounts start as "Guest" (view-only) for safety. An existing Administrator needs to change your role before you can add, edit, or delete anything.</div>
+        </details>
+        <details class="faq-item">
+          <summary data-i18n="help_faq2_q">What's the difference between a built-in register and a custom register?</summary>
+          <div class="faq-answer" data-i18n="help_faq2_a">Built-in registers (like File Movement) come ready-made. A custom register is one your office defines itself — its name and fields — from "⚙ Manage Custom Registers"; after that it works exactly like any other register.</div>
+        </details>
+        <details class="faq-item">
+          <summary data-i18n="help_faq3_q">How do I switch between English and Urdu?</summary>
+          <div class="faq-answer" data-i18n="help_faq3_a">Use the language selector at the top of the screen. It changes menus, labels, and buttons instantly for everyone's own screen — it doesn't change the data you've entered.</div>
+        </details>
+        <details class="faq-item">
+          <summary data-i18n="help_faq4_q">Where is my data stored — is it safe if this computer breaks?</summary>
+          <div class="faq-answer" data-i18n="help_faq4_a">Everything is stored online in this system's shared database, not on any one computer. If this computer is lost or damaged, the data is completely safe — just sign in again from any other computer.</div>
+        </details>
+        <details class="faq-item">
+          <summary data-i18n="help_faq5_q">Can more than one person use the system at the same time?</summary>
+          <div class="faq-answer" data-i18n="help_faq5_a">Yes. Everyone signed in sees the same live data, and changes made by one person appear for everyone else within a moment.</div>
+        </details>
+        <details class="faq-item">
+          <summary data-i18n="help_faq6_q">How do I print or download something as a PDF?</summary>
+          <div class="faq-answer" data-i18n="help_faq6_a">Most views have a Print button and a "Download PDF" button right next to it. Download PDF opens the very same print window — just choose "Save as PDF" (or "Microsoft Print to PDF") as the destination there instead of a physical printer.</div>
+        </details>
+        <details class="faq-item">
+          <summary data-i18n="help_faq7_q">Can I get this data into Excel?</summary>
+          <div class="faq-answer" data-i18n="help_faq7_a">Yes — most registers have an Export (CSV/Excel) button so you can open the data directly in Excel.</div>
+        </details>
+        <details class="faq-item">
+          <summary data-i18n="help_faq8_q">How do I send a letter on WhatsApp instead of printing it?</summary>
+          <div class="faq-answer" data-i18n="help_faq8_a">Open the saved letter and use its "Send via WhatsApp" button — it prepares the message so you just pick the contact and send.</div>
+        </details>
+        <details class="faq-item">
+          <summary data-i18n="help_faq9_q">I forgot my password — what should I do?</summary>
+          <div class="faq-answer" data-i18n="help_faq9_a">This system doesn't yet have an automatic "forgot password" option. Please contact an Administrator for help.</div>
+        </details>
+        <details class="faq-item">
+          <summary data-i18n="help_faq10_q">Who can see this data — is it private to our office?</summary>
+          <div class="faq-answer" data-i18n="help_faq10_a">Only people who sign in with an account on this system can see it. Access is controlled by the Administrator/Guest roles, and further enforced by the database's own security rules.</div>
+        </details>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1102,7 +1202,41 @@ en: {
   lt_refLabel:"Ref. No.", lt_toLabel:"To", lt_subjectLabel:"Subject:", lt_dateLabel:"Date",
   lt_caseSection:"Related case details (optional)", lt_caseNo:"Case No.", lt_caseTitle:"Title of Case", lt_versus:"Versus",
   lt_firNo:"F.I.R No.", lt_firDate:"FIR date", lt_policeStation:"Police Station", lt_district:"District",
-  lt_tehsil:"Tehsil", lt_benchNo:"Bench No.", lt_srNo:"Sr No."
+  lt_tehsil:"Tehsil", lt_benchNo:"Bench No.", lt_srNo:"Sr No.",
+  btn_close:"Close", nav_help:"Help / Guide",
+  help_title:"Help & User Guide",
+  help_introText:"This system is shared by the whole office — everything you enter is saved online immediately and every other signed-in user sees the same information. Only an Administrator can add, edit, or delete an entry in any register; a Guest can view, search, and print everything.",
+  help_registers_title:"Registers & Custom Registers",
+  help_registers_s1:"\"Registers\" in the sidebar lists every register this office keeps — some are built in, and an Administrator can add more from \"⚙ Manage Custom Registers\".",
+  help_registers_s2:"A custom register is defined once (its name and fields), then everyone can add entries to it just like any built-in register.",
+  help_registers_s3:"The File Movement Register specifically tracks a file sent out (to whom, when) until it's received back, so nothing gets lost in transit.",
+  help_judicial_title:"Judicial Roster",
+  help_judicial_s1:"\"Bench & Cause List\" records which judges sit on which bench, and the cases/nature of cases listed there, for a chosen date.",
+  help_judicial_s2:"\"Duty Roster\" tracks staff duty assignments separately from the bench listing.",
+  help_letters_title:"Letters",
+  help_letters_s1:"Compose a letter with its recipient, subject and body, then Save — it's added to the Letters list below.",
+  help_letters_s2:"Open any saved letter to Print it, download it as a PDF, or send it directly via WhatsApp.",
+  help_faqTitle:"Frequently asked questions",
+  help_faq1_q:"I signed up but I can't add, edit, or delete anything — why?",
+  help_faq1_a:"New accounts start as \"Guest\" (view-only) for safety. An existing Administrator needs to change your role before you can add, edit, or delete anything.",
+  help_faq2_q:"What's the difference between a built-in register and a custom register?",
+  help_faq2_a:"Built-in registers (like File Movement) come ready-made. A custom register is one your office defines itself — its name and fields — from \"⚙ Manage Custom Registers\"; after that it works exactly like any other register.",
+  help_faq3_q:"How do I switch between English and Urdu?",
+  help_faq3_a:"Use the language selector at the top of the screen. It changes menus, labels, and buttons instantly for everyone's own screen — it doesn't change the data you've entered.",
+  help_faq4_q:"Where is my data stored — is it safe if this computer breaks?",
+  help_faq4_a:"Everything is stored online in this system's shared database, not on any one computer. If this computer is lost or damaged, the data is completely safe — just sign in again from any other computer.",
+  help_faq5_q:"Can more than one person use the system at the same time?",
+  help_faq5_a:"Yes. Everyone signed in sees the same live data, and changes made by one person appear for everyone else within a moment.",
+  help_faq6_q:"How do I print or download something as a PDF?",
+  help_faq6_a:"Most views have a Print button and a \"Download PDF\" button right next to it. Download PDF opens the very same print window — just choose \"Save as PDF\" (or \"Microsoft Print to PDF\") as the destination there instead of a physical printer.",
+  help_faq7_q:"Can I get this data into Excel?",
+  help_faq7_a:"Yes — most registers have an Export (CSV/Excel) button so you can open the data directly in Excel.",
+  help_faq8_q:"How do I send a letter on WhatsApp instead of printing it?",
+  help_faq8_a:"Open the saved letter and use its \"Send via WhatsApp\" button — it prepares the message so you just pick the contact and send.",
+  help_faq9_q:"I forgot my password — what should I do?",
+  help_faq9_a:"This system doesn't yet have an automatic \"forgot password\" option. Please contact an Administrator for help.",
+  help_faq10_q:"Who can see this data — is it private to our office?",
+  help_faq10_a:"Only people who sign in with an account on this system can see it. Access is controlled by the Administrator/Guest roles, and further enforced by the database's own security rules."
 },
 ur: {
   app_title:"ریکارڈ سیکشن — کیس رجسٹرز",
@@ -1170,7 +1304,41 @@ ur: {
   lt_refLabel:"حوالہ نمبر", lt_toLabel:"بنام", lt_subjectLabel:"موضوع:", lt_dateLabel:"تاریخ",
   lt_caseSection:"متعلقہ کیس کی تفصیلات (اختیاری)", lt_caseNo:"کیس نمبر", lt_caseTitle:"کیس کا عنوان", lt_versus:"بمقابلہ",
   lt_firNo:"ایف آئی آر نمبر", lt_firDate:"ایف آئی آر کی تاریخ", lt_policeStation:"تھانہ", lt_district:"ضلع",
-  lt_tehsil:"تحصیل", lt_benchNo:"بینچ نمبر", lt_srNo:"سیریل نمبر"
+  lt_tehsil:"تحصیل", lt_benchNo:"بینچ نمبر", lt_srNo:"سیریل نمبر",
+  btn_close:"بند کریں", nav_help:"مدد / رہنمائی",
+  help_title:"مدد اور صارف رہنما",
+  help_introText:"یہ سسٹم پورے دفتر میں مشترکہ ہے — آپ جو کچھ بھی درج کریں گے وہ فوراً آن لائن محفوظ ہو جاتا ہے اور ہر سائن اِن یوزر کو وہی معلومات نظر آتی ہیں۔ کسی بھی رجسٹر میں نیا اندراج، ترمیم یا حذف صرف Administrator کر سکتا ہے؛ Guest سب کچھ دیکھ، تلاش اور پرنٹ کر سکتا ہے۔",
+  help_registers_title:"رجسٹرز اور اپنی مرضی کے رجسٹرز",
+  help_registers_s1:"سائیڈبار میں \"Registers\" اس دفتر کے تمام رجسٹرز کی فہرست دکھاتا ہے — کچھ پہلے سے موجود ہیں، اور Administrator \"⚙ اپنی مرضی کے رجسٹرز منظم کریں\" سے مزید شامل کر سکتا ہے۔",
+  help_registers_s2:"اپنی مرضی کا رجسٹر ایک بار بنایا جاتا ہے (نام اور فیلڈز)، اس کے بعد ہر کوئی اس میں بالکل ایسے ہی اندراج کر سکتا ہے جیسے کسی بھی دوسرے رجسٹر میں۔",
+  help_registers_s3:"فائل موومنٹ رجسٹر خاص طور پر یہ ٹریک کرتا ہے کہ کوئی فائل کب اور کس کو بھیجی گئی، جب تک وہ واپس موصول نہ ہو جائے — تاکہ راستے میں کوئی فائل گم نہ ہو۔",
+  help_judicial_title:"عدالتی روسٹر",
+  help_judicial_s1:"\"بینچ / کاز لسٹ\" میں درج ہوتا ہے کہ کس تاریخ کو کون سے جج کس بینچ پر بیٹھے، اور اس بینچ کے سامنے کون سے کیسز/نوعیتِ مقدمہ مقرر ہیں۔",
+  help_judicial_s2:"\"ڈیوٹی روسٹر\" عملے کی کورٹ ڈیوٹی کا الگ سے ریکارڈ رکھتا ہے۔",
+  help_letters_title:"خطوط",
+  help_letters_s1:"وصول کنندہ، موضوع اور متن کے ساتھ خط لکھیں، پھر Save کریں — یہ نیچے خطوط کی فہرست میں شامل ہو جائے گا۔",
+  help_letters_s2:"کسی بھی محفوظ شدہ خط کو کھول کر پرنٹ کریں، PDF کے طور پر ڈاؤن لوڈ کریں، یا براہِ راست واٹس ایپ پر بھیجیں۔",
+  help_faqTitle:"اکثر پوچھے گئے سوالات",
+  help_faq1_q:"میں نے اکاؤنٹ بنایا لیکن کچھ شامل، ترمیم یا حذف نہیں کر سکتا — کیوں؟",
+  help_faq1_a:"حفاظت کی خاطر نئے اکاؤنٹس \"Guest\" (صرف دیکھنے والے) کے طور پر شروع ہوتے ہیں۔ کسی موجودہ Administrator سے کہیں کہ وہ آپ کا role تبدیل کر دے، تب ہی آپ شامل/ترمیم/حذف کر سکیں گے۔",
+  help_faq2_q:"پہلے سے موجود رجسٹر اور اپنی مرضی کے رجسٹر میں کیا فرق ہے؟",
+  help_faq2_a:"پہلے سے موجود رجسٹرز (جیسے فائل موومنٹ) تیار شدہ آتے ہیں۔ اپنی مرضی کا رجسٹر آپ کا دفتر خود بناتا ہے — اس کا نام اور فیلڈز — \"⚙ اپنی مرضی کے رجسٹرز منظم کریں\" سے؛ اس کے بعد یہ بالکل کسی دوسرے رجسٹر کی طرح کام کرتا ہے۔",
+  help_faq3_q:"انگریزی اور اردو کے درمیان کیسے تبدیل کروں؟",
+  help_faq3_a:"اسکرین کے اوپر زبان منتخب کرنے والا خانہ استعمال کریں۔ یہ ہر شخص کی اپنی اسکرین کے مینو، لیبل، اور بٹن فوراً تبدیل کر دیتا ہے — آپ کے درج کردہ ڈیٹا کو تبدیل نہیں کرتا۔",
+  help_faq4_q:"میرا ڈیٹا کہاں محفوظ ہے — اگر یہ کمپیوٹر خراب ہو جائے تو کیا میرا ڈیٹا محفوظ ہے؟",
+  help_faq4_a:"سب کچھ اس سسٹم کے مشترکہ ڈیٹا بیس میں آن لائن محفوظ ہے، کسی ایک کمپیوٹر پر نہیں۔ اگر یہ کمپیوٹر گم یا خراب ہو جائے، تو ڈیٹا مکمل طور پر محفوظ رہتا ہے — بس کسی اور کمپیوٹر سے دوبارہ سائن اِن کریں۔",
+  help_faq5_q:"کیا ایک سے زیادہ افراد بیک وقت سسٹم استعمال کر سکتے ہیں؟",
+  help_faq5_a:"جی ہاں۔ سائن اِن ہر شخص وہی لائیو ڈیٹا دیکھتا ہے، اور ایک شخص کی تبدیلی چند لمحوں میں سب کو نظر آ جاتی ہے۔",
+  help_faq6_q:"کسی چیز کو پرنٹ یا PDF کے طور پر ڈاؤن لوڈ کیسے کروں؟",
+  help_faq6_a:"زیادہ تر صفحات میں Print بٹن اور اس کے ساتھ ہی \"Download PDF\" بٹن موجود ہے۔ Download PDF وہی پرنٹ ونڈو کھولتا ہے — بس وہاں پرنٹر کی بجائے \"Save as PDF\" (یا \"Microsoft Print to PDF\") منتخب کر لیں۔",
+  help_faq7_q:"کیا میں یہ ڈیٹا ایکسل میں لے جا سکتا ہوں؟",
+  help_faq7_a:"جی ہاں — زیادہ تر رجسٹرز میں Export (CSV/Excel) بٹن موجود ہے جس سے آپ ڈیٹا براہ راست ایکسل میں کھول سکتے ہیں۔",
+  help_faq8_q:"خط پرنٹ کرنے کی بجائے واٹس ایپ پر کیسے بھیجوں؟",
+  help_faq8_a:"محفوظ شدہ خط کھولیں اور اس کا \"واٹس ایپ پر بھیجیں\" بٹن استعمال کریں — یہ پیغام تیار کر دیتا ہے، بس رابطہ منتخب کر کے بھیج دیں۔",
+  help_faq9_q:"میں اپنا پاس ورڈ بھول گیا — کیا کروں؟",
+  help_faq9_a:"اس سسٹم میں ابھی خودکار \"پاس ورڈ بھول گئے\" کی سہولت موجود نہیں۔ براہ کرم مدد کے لیے کسی Administrator سے رابطہ کریں۔",
+  help_faq10_q:"یہ ڈیٹا کون دیکھ سکتا ہے — کیا یہ صرف ہمارے آفس کے لیے محفوظ ہے؟",
+  help_faq10_a:"صرف وہی لوگ دیکھ سکتے ہیں جو اس سسٹم پر اپنے اکاؤنٹ سے سائن اِن ہوں۔ رسائی Administrator/Guest کے roles سے کنٹرول ہوتی ہے، اور مزید ڈیٹا بیس کے اپنے سیکیورٹی rules سے محفوظ ہے۔"
 }
 };
 var UI_LANG_STORAGE_KEY = "recordSection_uiLang";
@@ -2189,6 +2357,14 @@ document.getElementById("loginBtn").addEventListener("click", function(){
 });
 document.getElementById("login_password").addEventListener("keydown", function(ev){ if(ev.key==="Enter") document.getElementById("loginBtn").click(); });
 document.getElementById("logoutBtn").addEventListener("click", function(){ auth.signOut(); });
+
+/* ================= HELP / GUIDE OVERLAY ================= */
+document.getElementById("btnHelp").addEventListener("click", function(){
+  document.getElementById("helpOverlay").style.display = "flex";
+});
+document.getElementById("helpCloseBtn").addEventListener("click", function(){
+  document.getElementById("helpOverlay").style.display = "none";
+});
 auth.onAuthStateChanged(function(user){
   if(user){
     db.collection("users").doc(user.uid).get().then(function(snap){
