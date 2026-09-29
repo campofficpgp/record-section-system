@@ -221,6 +221,10 @@ html,body{overflow-x:hidden;}
     body{background:#fff;}
     main{max-width:none;padding:0;}
     .card, .table-wrap{box-shadow:none;border:1px solid #999;}
+    /* Wide tables (with several custom fields added via Field Manager) scroll horizontally
+       on screen (.table-wrap{overflow-x:auto}) — let the full table render at its natural
+       width during capture instead of only the currently-scrolled-into-view columns. */
+    .table-wrap{overflow-x:visible !important;}
     /* Item 31: printing a letter shows only the single-letter preview card, not the browsing table. */
     #panel-letters .table-wrap, #panel-letters .results-strip{display:none !important;}
   }
