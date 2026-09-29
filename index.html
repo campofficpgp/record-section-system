@@ -20,6 +20,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script><!-- Sends the super-admin security code by email (see "Super Admin Email OTP Gate" below) -->
@@ -416,7 +417,7 @@ html,body{overflow-x:hidden;}
       <option value="slate">نرم خاکستری 🩶 / Soft Slate</option>
     </select>
     <button id="globalPrintBtn" data-i18n="btn_printCurrent">Print current view</button>
-    <button id="globalPdfBtn" title="Choose 'Save as PDF' in the print window" data-i18n="btn_downloadPdf">📄 Download PDF</button>
+    <button id="globalPdfBtn" title="Downloads a ready PDF file directly" data-i18n="btn_downloadPdf">📄 Download PDF</button>
     <button id="hfConfigBtn" type="button" class="btn ghost small" style="display:none;" title="Report header/footer fields / رپورٹ ہیڈر/فوٹر فیلڈز">☰ Header/Footer</button>
     <button id="colsConfigBtn" type="button" class="btn ghost small" style="display:none;" title="Choose which columns to print / پرنٹ کے لیے کالم منتخب کریں">☰ Select Columns</button>
     <button id="btnHelp" data-i18n="nav_help">Help / Guide</button>
@@ -486,7 +487,7 @@ html,body{overflow-x:hidden;}
         </details>
         <details class="faq-item">
           <summary data-i18n="help_faq6_q">How do I print or download something as a PDF?</summary>
-          <div class="faq-answer" data-i18n="help_faq6_a">Most views have a Print button and a "Download PDF" button right next to it. Download PDF opens the very same print window — just choose "Save as PDF" (or "Microsoft Print to PDF") as the destination there instead of a physical printer.</div>
+          <div class="faq-answer" data-i18n="help_faq6_a">Most views have a Print button and a "Download PDF" button right next to it. Download PDF builds and downloads a ready PDF file directly, with no print window and no browser header/footer added to it.</div>
         </details>
         <details class="faq-item">
           <summary data-i18n="help_faq7_q">Can I get this data into Excel?</summary>
@@ -1228,7 +1229,7 @@ en: {
   help_faq5_q:"Can more than one person use the system at the same time?",
   help_faq5_a:"Yes. Everyone signed in sees the same live data, and changes made by one person appear for everyone else within a moment.",
   help_faq6_q:"How do I print or download something as a PDF?",
-  help_faq6_a:"Most views have a Print button and a \"Download PDF\" button right next to it. Download PDF opens the very same print window — just choose \"Save as PDF\" (or \"Microsoft Print to PDF\") as the destination there instead of a physical printer.",
+  help_faq6_a:"Most views have a Print button and a \"Download PDF\" button right next to it. Download PDF builds and downloads a ready PDF file directly, with no print window and no browser header/footer added to it.",
   help_faq7_q:"Can I get this data into Excel?",
   help_faq7_a:"Yes — most registers have an Export (CSV/Excel) button so you can open the data directly in Excel.",
   help_faq8_q:"How do I send a letter on WhatsApp instead of printing it?",
@@ -1330,7 +1331,7 @@ ur: {
   help_faq5_q:"کیا ایک سے زیادہ افراد بیک وقت سسٹم استعمال کر سکتے ہیں؟",
   help_faq5_a:"جی ہاں۔ سائن اِن ہر شخص وہی لائیو ڈیٹا دیکھتا ہے، اور ایک شخص کی تبدیلی چند لمحوں میں سب کو نظر آ جاتی ہے۔",
   help_faq6_q:"کسی چیز کو پرنٹ یا PDF کے طور پر ڈاؤن لوڈ کیسے کروں؟",
-  help_faq6_a:"زیادہ تر صفحات میں Print بٹن اور اس کے ساتھ ہی \"Download PDF\" بٹن موجود ہے۔ Download PDF وہی پرنٹ ونڈو کھولتا ہے — بس وہاں پرنٹر کی بجائے \"Save as PDF\" (یا \"Microsoft Print to PDF\") منتخب کر لیں۔",
+  help_faq6_a:"زیادہ تر صفحات میں Print بٹن اور اس کے ساتھ ہی \"Download PDF\" بٹن موجود ہے۔ یہ کوئی پرنٹ ونڈو کھولے بغیر سیدھی ایک تیار PDF فائل بنا کر ڈاؤن لوڈ کر دیتا ہے — نہ کوئی پرنٹ ونڈو، نہ browser کا کوئی اضافی ہیڈر/فوٹر۔",
   help_faq7_q:"کیا میں یہ ڈیٹا ایکسل میں لے جا سکتا ہوں؟",
   help_faq7_a:"جی ہاں — زیادہ تر رجسٹرز میں Export (CSV/Excel) بٹن موجود ہے جس سے آپ ڈیٹا براہ راست ایکسل میں کھول سکتے ہیں۔",
   help_faq8_q:"خط پرنٹ کرنے کی بجائے واٹس ایپ پر کیسے بھیجوں؟",
@@ -3139,17 +3140,14 @@ function renderLetterPreview(){
     "<div class='lt-preview-body'>"+esc(rec.body)+"</div>"+
     "<div class='lt-preview-actions'>"+
       "<button class='btn ghost small' id='ltPreviewPrintBtn'>🖨️ "+esc(t("btn_printCurrent"))+"</button>"+
-      "<button class='btn ghost small' id='ltPreviewPdfBtn' title=\"Choose 'Save as PDF' in the print window\">"+esc(t("btn_downloadPdf"))+"</button>"+
+      "<button class='btn ghost small' id='ltPreviewPdfBtn' title=\"Downloads a ready PDF file directly\">"+esc(t("btn_downloadPdf"))+"</button>"+
       "<button class='btn ghost small' id='ltPreviewWaBtn'>"+esc(t("btn_sendWhatsapp"))+"</button>"+
     "</div>";
   document.getElementById("ltPreviewPrintBtn").addEventListener("click", function(){
     document.getElementById("pbPrintExtraFields").innerHTML = buildPrintExtraFieldsHtml(currentPanelKey());
     window.print();
   });
-  document.getElementById("ltPreviewPdfBtn").addEventListener("click", function(){
-    document.getElementById("pbPrintExtraFields").innerHTML = buildPrintExtraFieldsHtml(currentPanelKey());
-    window.print();
-  });
+  document.getElementById("ltPreviewPdfBtn").addEventListener("click", downloadCurrentViewAsPdf);
   document.getElementById("ltPreviewWaBtn").addEventListener("click", function(){ sendLetterWhatsapp(rec.id); });
 }
 function renderLetters(){
@@ -3277,10 +3275,54 @@ document.getElementById("globalPrintBtn").addEventListener("click", function(){
   window.print();
 });
 
-document.getElementById("globalPdfBtn").addEventListener("click", function(){
+document.getElementById("globalPdfBtn").addEventListener("click", downloadCurrentViewAsPdf);
+
+/* ================= Real "Download PDF" — an actual file, not the print dialog =================
+   The old Download PDF buttons just called window.print() and relied on the user picking
+   "Save as PDF" in the browser's print window, which stamps its own header/footer onto the
+   result. This builds a real PDF file client-side (html2pdf.js) and downloads it directly —
+   no print window, no browser chrome. Temporarily flips "@media print" rules to "@media all"
+   so the existing print styling (including the letter-preview isolation, Item 31) still
+   applies while it's captured, then restores it. Shared by the global toolbar button and the
+   per-letter preview button — both already only differ by which panel happens to be active. */
+function withPrintRulesActive(fn){
+  var touched = [];
+  Array.prototype.forEach.call(document.styleSheets, function(sheet){
+    var rules;
+    try{ rules = sheet.cssRules; }catch(e){ return; }
+    if(!rules) return;
+    Array.prototype.forEach.call(rules, function(rule){
+      if(rule.type === CSSRule.MEDIA_RULE && rule.media && rule.media.mediaText.indexOf("print") !== -1){
+        touched.push({rule: rule, original: rule.media.mediaText});
+        try{ rule.media.mediaText = "all"; }catch(e){/* ignore */}
+      }
+    });
+  });
+  return Promise.resolve().then(fn).finally(function(){
+    touched.forEach(function(t){
+      try{ t.rule.media.mediaText = t.original; }catch(e){/* ignore */}
+    });
+  });
+}
+function downloadCurrentViewAsPdf(){
   document.getElementById("pbPrintExtraFields").innerHTML = buildPrintExtraFieldsHtml(currentPanelKey());
-  window.print();
-});
+  var target = document.querySelector(".shell");
+  var label = (PANEL_LABELS[currentPanelKey()]||"Document").replace(/[^A-Za-z0-9]+/g,'-');
+  var filename = "CampOffice-RecordSection-"+label+"-"+todayStr()+".pdf";
+  withPrintRulesActive(function(){
+    return html2pdf().set({
+      margin: [14,14,14,14],
+      filename: filename,
+      image: {type:"jpeg", quality:0.98},
+      html2canvas: {scale:2, useCORS:true, logging:false, windowWidth: target.scrollWidth},
+      jsPDF: {unit:"mm", format:"a4", orientation:"portrait"},
+      pagebreak: {mode:["css","legacy"]}
+    }).from(target).save();
+  }).catch(function(err){
+    console.error("PDF export failed:", err);
+    toast("PDF بنانے میں خرابی — دوبارہ کوشش کریں۔ / Could not build the PDF — please try again.");
+  });
+}
 
 /* ================= BOOT ================= */
 switchPanels();
