@@ -223,6 +223,11 @@ html,body{overflow-x:hidden;}
        chrome, not report content — without this it was rendering into every downloaded PDF. */
     .app-shell{display:block !important;}
     .main-col{width:100% !important;}
+    /* The global "html,body{overflow-x:hidden}" rule (near the top of this stylesheet) is meant
+       to stop an accidental horizontal scrollbar on screen — but during PDF capture it also
+       clips a wide table even after .table-wrap below is let to overflow past its own box.
+       Let the body grow to the table's full width for the capture. */
+    html,body{overflow-x:visible !important;}
     body{background:#fff;}
     main{max-width:none;padding:0;}
     .card, .table-wrap{box-shadow:none;border:1px solid #999;}
