@@ -217,7 +217,12 @@ html,body{overflow-x:hidden;}
   footer.appfoot{text-align:center;color:var(--muted);font-size:11.5px;padding:18px;border-top:1px solid var(--border);}
 
   @media print{
-    .topbar, nav.sidenav, .entry-form, .search-bar, .btnbar, .guest-banner, footer.appfoot{display:none !important;}
+    .topbar, nav.sidenav, .entry-form, .search-bar, .btnbar, .guest-banner, footer.appfoot,
+    .sidebar, .sidebar-backdrop{display:none !important;}
+    /* The portal-wide navigation sidebar (Dashboard/Case Management/Reports links etc.) is
+       chrome, not report content — without this it was rendering into every downloaded PDF. */
+    .app-shell{display:block !important;}
+    .main-col{width:100% !important;}
     body{background:#fff;}
     main{max-width:none;padding:0;}
     .card, .table-wrap{box-shadow:none;border:1px solid #999;}
@@ -3313,12 +3318,17 @@ function downloadCurrentViewAsPdf(){
   var target = document.querySelector(".shell");
   var label = (PANEL_LABELS[currentPanelKey()]||"Document").replace(/[^A-Za-z0-9]+/g,'-');
   var filename = "CampOffice-RecordSection-"+label+"-"+todayStr()+".pdf";
+  /* Reset scroll before capture: html2canvas otherwise offsets the capture by whatever the
+     real page's current scroll position happens to be (left over from browsing a wide table
+     or a different panel), cropping/shifting the result — scrollX/scrollY:0 below tells it
+     not to add that offset, and this scrollTo makes sure there genuinely isn't one to add. */
+  window.scrollTo(0,0);
   withPrintRulesActive(function(){
     return html2pdf().set({
       margin: [14,14,14,14],
       filename: filename,
       image: {type:"jpeg", quality:0.98},
-      html2canvas: {scale:2, useCORS:true, logging:false, windowWidth: target.scrollWidth},
+      html2canvas: {scale:2, useCORS:true, logging:false, windowWidth: target.scrollWidth, scrollX:0, scrollY:0},
       jsPDF: {unit:"mm", format:"a4", orientation:"portrait"},
       pagebreak: {mode:["css","legacy"]}
     }).from(target).save();
