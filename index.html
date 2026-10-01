@@ -20,7 +20,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<!-- html2pdf.js 0.10.1 has a bug in this app's environment: its internal wrapper around
+     html2canvas comes back with a 0-height canvas, so every PDF it builds is a blank page
+     (confirmed by direct testing on cmpofficepgp.org). html2canvas and jsPDF loaded separately
+     here and combined by hand in downloadCurrentViewAsPdf() instead. -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script><!-- Sends the super-admin security code by email (see "Super Admin Email OTP Gate" below) -->
@@ -3318,6 +3323,42 @@ function withPrintRulesActive(fn){
     });
   });
 }
+/* Builds and saves a PDF from `target` using html2canvas + jsPDF directly instead of
+   html2pdf.js, whose own internal wrapper comes back with a 0-height canvas in this app's
+   environment (confirmed by direct testing on the live site — every PDF it built was a
+   blank page, no error, regardless of what was being captured). html2canvas itself works
+   fine; jsPDF composes the final file by hand, with pagination for content taller than one
+   page (sliced the same way a long document would paginate when printed). */
+function buildPdfFromElement(target, filename, marginMm, jsPdfFormat, jsPdfOrientation, html2canvasOpts){
+  var opts = Object.assign({scale:2, useCORS:true, logging:false}, html2canvasOpts || {});
+  return html2canvas(target, opts).then(function(canvas){
+    var JsPDFCtor = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
+    var pdf = new JsPDFCtor({unit:"mm", format: jsPdfFormat, orientation: jsPdfOrientation});
+    var imgWmm = pdf.internal.pageSize.getWidth() - marginMm*2;
+    var imgHmm = canvas.height * imgWmm / canvas.width;
+    var pageHmm = pdf.internal.pageSize.getHeight() - marginMm*2;
+    var imgData = canvas.toDataURL("image/jpeg", 0.98);
+    if (imgHmm <= pageHmm) {
+      pdf.addImage(imgData, "JPEG", marginMm, marginMm, imgWmm, imgHmm);
+    } else {
+      var pxPerPage = Math.floor(pageHmm * canvas.width / imgWmm);
+      var sliceCanvas = document.createElement("canvas");
+      sliceCanvas.width = canvas.width;
+      var sctx = sliceCanvas.getContext("2d");
+      var remaining = canvas.height, y = 0, first = true;
+      while (remaining > 0) {
+        var sliceH = Math.min(pxPerPage, remaining);
+        sliceCanvas.height = sliceH;
+        sctx.clearRect(0, 0, sliceCanvas.width, sliceH);
+        sctx.drawImage(canvas, 0, y, canvas.width, sliceH, 0, 0, canvas.width, sliceH);
+        if (!first) pdf.addPage();
+        pdf.addImage(sliceCanvas.toDataURL("image/jpeg", 0.98), "JPEG", marginMm, marginMm, imgWmm, sliceH * imgWmm / canvas.width);
+        y += sliceH; remaining -= sliceH; first = false;
+      }
+    }
+    pdf.save(filename);
+  });
+}
 function downloadCurrentViewAsPdf(){
   document.getElementById("pbPrintExtraFields").innerHTML = buildPrintExtraFieldsHtml(currentPanelKey());
   var target = document.querySelector(".shell");
@@ -3329,14 +3370,7 @@ function downloadCurrentViewAsPdf(){
      not to add that offset, and this scrollTo makes sure there genuinely isn't one to add. */
   window.scrollTo(0,0);
   withPrintRulesActive(function(){
-    return html2pdf().set({
-      margin: [14,14,14,14],
-      filename: filename,
-      image: {type:"jpeg", quality:0.98},
-      html2canvas: {scale:2, useCORS:true, logging:false, windowWidth: target.scrollWidth, scrollX:0, scrollY:0},
-      jsPDF: {unit:"mm", format:"a4", orientation:"portrait"},
-      pagebreak: {mode:["css","legacy"]}
-    }).from(target).save();
+    return buildPdfFromElement(target, filename, 14, "a4", "portrait", {windowWidth: target.scrollWidth, scrollX:0, scrollY:0});
   }).catch(function(err){
     console.error("PDF export failed:", err);
     toast("PDF بنانے میں خرابی — دوبارہ کوشش کریں۔ / Could not build the PDF — please try again.");
