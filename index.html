@@ -421,7 +421,7 @@ html,body{overflow-x:hidden;}
     <img src="logo-punjab-govt-print.png" alt="Government of the Punjab" style="height:40px;width:auto;flex:none;">
     <div>
       <h1 data-i18n="app_title">Record Section — Case Registers</h1>
-    <div class="sub" data-i18n="app_subtitle">Jail Petition · Criminal Appeal · Murder Reference · State Appeal · State Review · Criminal Petition · Criminal Misc. · Criminal Review · Suo Motu / HRC</div>
+    <div class="sub" data-i18n="app_subtitle">File Movement · Letters · Bench &amp; Cause List · Duty Roster · Custom Registers</div>
     </div>
   </div>
   <div class="userbar">
@@ -1066,36 +1066,17 @@ html,body{overflow-x:hidden;}
 <input type="file" id="restoreFile" accept="application/json" style="display:none">
 
 <script>
-/* ================= REGISTER TYPES ================= */
-var REGISTER_TYPES = [
-  {key:"jp", en:"Jail Petition Register", ur:"جیل پٹیشن رجسٹر",
-    descEn:"Petitions filed by jail inmates seeking leave to appeal against their conviction or sentence.",
-    descUr:"قیدیوں کی طرف سے اپنی سزا کے خلاف اپیل کی اجازت کے لیے دائر پٹیشنز۔"},
-  {key:"crlA", en:"Criminal Appeal Register", ur:"کریمنل اپیل رجسٹر",
-    descEn:"Criminal appeals filed in this Court.",
-    descUr:"اس عدالت میں دائر کریمنل اپیلیں۔"},
-  {key:"murderRef", en:"Murder Reference Register", ur:"مرڈر ریفرنس رجسٹر",
-    descEn:"Automatic reference to this Court for confirmation of a death sentence awarded by the Trial/Sessions Court.",
-    descUr:"ٹرائل/سیشن کورٹ کی جانب سے دی گئی سزائے موت کی توثیق کے لیے اس عدالت کو بھیجا گیا خودکار ریفرنس۔"},
-  {key:"stateAppeal", en:"State Appeal Register", ur:"ریاستی اپیل رجسٹر",
-    descEn:"Appeals filed by the State/prosecution against acquittal or against an inadequate sentence.",
-    descUr:"ریاست/استغاثہ کی طرف سے بریت یا ناکافی سزا کے خلاف دائر کردہ اپیلیں۔"},
-  {key:"stateRev", en:"State Review Petition Register", ur:"ریاستی ریویو پٹیشن رجسٹر",
-    descEn:"Petitions filed by the State seeking review of a judgment already decided by this Court.",
-    descUr:"ریاست کی طرف سے اس عدالت کے فیصلہ شدہ مقدمے پر نظرثانی کے لیے دائر کردہ درخواستیں۔"},
-  {key:"crlP", en:"Criminal Petition Register", ur:"کریمنل پٹیشن رجسٹر",
-    descEn:"Criminal petitions for leave to appeal.",
-    descUr:"اپیل کی اجازت کے لیے کریمنل پٹیشنز۔"},
-  {key:"crlMisc", en:"Criminal Miscellaneous Register", ur:"کریمنل مسک رجسٹر",
-    descEn:"Criminal miscellaneous applications, including bail matters.",
-    descUr:"کریمنل متفرق درخواستیں، بشمول ضمانت کے معاملات۔"},
-  {key:"crlRev", en:"Criminal Review Petition Register", ur:"کریمنل ریویو پٹیشن رجسٹر",
-    descEn:"Petitions seeking review of a judgment already decided by this Court.",
-    descUr:"اس عدالت کے فیصلہ شدہ مقدمے پر نظرثانی کی درخواستیں۔"},
-  {key:"suoMotu", en:"Suo Motu / Human Rights Case Register", ur:"سو موٹو / ہیومن رائٹس کیس رجسٹر",
-    descEn:"Cases taken up by the Court on its own motion, and human rights cases.",
-    descUr:"عدالت کی طرف سے ازخود نوٹس پر لیے گئے مقدمات، اور انسانی حقوق کے مقدمات۔"}
-];
+/* ================= REGISTER TYPES =================
+   (3 Oct 2026) By the user's explicit request, all 9 of the built-in case registers that
+   used to be listed here (Jail Petition, Criminal Appeal, Murder Reference, State Appeal,
+   State Review Petition, Criminal Petition, Criminal Miscellaneous, Criminal Review
+   Petition, and Suo Motu / Human Rights Case) have been removed -- none of them had any
+   entries saved, so no data was lost. The array is left empty rather than deleted outright
+   so the rest of the generic "register" engine (sidebar, form, table, CSV export, print
+   columns) keeps working safely with zero types, and a new register type could be added
+   back here later the same way these were defined, if ever needed. File Movement, Letters,
+   Bench & Cause List, Duty Roster, and Custom Registers are untouched. */
+var REGISTER_TYPES = [];
 var STATUS_CLASS = {
   "Pending":"pending", "Fixed for Hearing":"fixed", "Disposed":"disposed",
   "Allowed":"allowed", "Dismissed":"dismissed", "Withdrawn":"withdrawn"
@@ -1158,7 +1139,7 @@ var DEFAULT_JUDGES_SEED = [
 var I18N_UI = {
 en: {
   app_title:"Record Section — Case Registers",
-  app_subtitle:"Jail Petition · Criminal Appeal · Murder Reference · State Appeal · State Review · Criminal Petition · Criminal Misc. · Criminal Review · Suo Motu / HRC",
+  app_subtitle:"File Movement · Letters · Bench & Cause List · Duty Roster · Custom Registers",
   btn_cancelEdit:"Cancel edit", btn_clearFilters:"Clear filters", btn_exportCsv:"Export visible rows (CSV)",
   btn_printCurrent:"Print current view", btn_saveEntry:"Save entry", btn_downloadPdf:"📄 Download PDF",
   btn_backup:"Backup (save file)", btn_restore:"Restore from file",
@@ -1260,7 +1241,7 @@ en: {
 },
 ur: {
   app_title:"ریکارڈ سیکشن — کیس رجسٹرز",
-  app_subtitle:"جیل پٹیشن · کریمنل اپیل · مرڈر ریفرنس · ریاستی اپیل · ریاستی ریویو پٹیشن · کریمنل پٹیشن · کریمنل مسک · کریمنل ریویو · سو موٹو / HRC",
+  app_subtitle:"فائل موومنٹ · خطوط · بینچ اور کاز لسٹ · ڈیوٹی روسٹر · کسٹم رجسٹرز",
   btn_cancelEdit:"ترمیم منسوخ کریں", btn_clearFilters:"فلٹرز صاف کریں", btn_exportCsv:"نظر آنے والی قطاریں ایکسپورٹ کریں (CSV)",
   btn_printCurrent:"موجودہ صفحہ پرنٹ کریں", btn_saveEntry:"اندراج محفوظ کریں", btn_downloadPdf:"📄 PDF ڈاؤن لوڈ کریں",
   btn_backup:"بیک اپ (فائل محفوظ کریں)", btn_restore:"فائل سے بحال کریں",
@@ -2578,8 +2559,10 @@ function saveDutyRoster(){ STATE.dutyRoster = DUTY_ROSTER; saveData(); }
 function saveLetters(){ STATE.letters = LETTERS; saveData(); }
 
 var RECORDS = [];
-var CURRENT_TYPE = REGISTER_TYPES[0].key;
-var CURRENT_VIEW = "register"; /* "register" | "filemovement" | "letters" | "custom" | "custommanage" | "judicial" | "judgesmanage" | "dutyroster" */
+var CURRENT_TYPE = REGISTER_TYPES.length ? REGISTER_TYPES[0].key : null;
+/* "register" | "filemovement" | "letters" | "custom" | "custommanage" | "judicial" | "judgesmanage" | "dutyroster" --
+   default view falls back to "filemovement" when there are no built-in register types (see REGISTER_TYPES above). */
+var CURRENT_VIEW = REGISTER_TYPES.length ? "register" : "filemovement";
 var editId = null;
 var FILE_MOVEMENTS = [];
 var fmEditId = null;
@@ -2648,12 +2631,15 @@ function downloadCSV(filename, rows){
 /* ================= SIDEBAR ================= */
 function renderSidenav(){
   var lang = document.documentElement.getAttribute("data-ui-lang") || "en";
-  var html = "<div class='navnote'>"+esc(t("nav_registers"))+"</div>";
-  REGISTER_TYPES.forEach(function(r){
-    var label = lang==="ur"? r.ur : r.en;
-    var isActive = (CURRENT_VIEW==="register" && r.key===CURRENT_TYPE);
-    html += "<button class='tab-btn"+(isActive? " active":"")+"' data-key='"+r.key+"'><span class='dot'></span> "+esc(label)+"</button>";
-  });
+  var html = "";
+  if(REGISTER_TYPES.length){ /* heading only shown if there's at least one built-in register type to list under it */
+    html += "<div class='navnote'>"+esc(t("nav_registers"))+"</div>";
+    REGISTER_TYPES.forEach(function(r){
+      var label = lang==="ur"? r.ur : r.en;
+      var isActive = (CURRENT_VIEW==="register" && r.key===CURRENT_TYPE);
+      html += "<button class='tab-btn"+(isActive? " active":"")+"' data-key='"+r.key+"'><span class='dot'></span> "+esc(label)+"</button>";
+    });
+  }
   html += "<div class='navnote'>"+esc(t("nav_other"))+"</div>";
   html += "<button class='tab-btn"+(CURRENT_VIEW==="filemovement"? " active":"")+"' data-view='filemovement'><span class='dot'></span> "+esc(t("fm_title"))+"</button>";
   html += "<button class='tab-btn"+(CURRENT_VIEW==="letters"? " active":"")+"' data-view='letters'><span class='dot'></span> "+esc(t("nav_letters"))+"</button>";
@@ -2856,8 +2842,10 @@ function statusLabel(status){
   return key? t(key) : status;
 }
 function renderRegister(){
+  if(!REGISTER_TYPES.length) return; /* no built-in register types left -- panel-register is never shown, nothing to render */
   var lang = document.documentElement.getAttribute("data-ui-lang") || "en";
   var typeDef = REGISTER_TYPES.find(function(r){ return r.key===CURRENT_TYPE; });
+  if(!typeDef) return;
   document.getElementById("regTitle").textContent = lang==="ur"? typeDef.ur : typeDef.en;
   document.getElementById("regDesc").textContent = lang==="ur"? typeDef.descUr : typeDef.descEn;
   populateSelectOrAdd("r_subject", RECORDS.filter(function(r){ return r.type===CURRENT_TYPE; }).map(function(r){ return r.subject; }), t("opt_selectSubject"));
