@@ -392,26 +392,26 @@ html,body{overflow-x:hidden;}
         <button class="sidebar-collapse-btn" id="sidebarCollapseBtn" title="Collapse">◧</button>
       </div>
       <nav class="sidebar-nav">
-        <a class="nav-item" href="https://cmpofficepgp.org/camp-office-suite/" target="_blank"><span class="ico">🏠</span><span class="label">Dashboard</span></a>
+        <a class="nav-item" href="https://cmpofficepgp.org/camp-office-suite/"><span class="ico">🏠</span><span class="label">Dashboard</span></a>
         <div class="nav-group open" id="navGroupCase">
           <button class="nav-group-head" data-group="navGroupCase"><span class="ico">📁</span><span class="label">Case Management</span><span class="chev">›</span></button>
           <div class="nav-submenu">
-            <a class="nav-subitem" href="https://cmpofficepgp.org/camp-office-suite/case-entry.html" target="_blank"><span class="ico">📋</span><span>Daily Case Entry</span></a>
-            <a class="nav-subitem" href="https://cmpofficepgp.org/case-notice-system/" target="_blank"><span class="ico">📨</span><span>Case Notices</span></a>
-            <a class="nav-subitem" href="https://cmpofficepgp.org/daily-case-management-system/" target="_blank"><span class="ico">🗃️</span><span>Daily Case Mgmt</span></a>
+            <a class="nav-subitem" href="https://cmpofficepgp.org/camp-office-suite/case-entry.html"><span class="ico">📋</span><span>Daily Case Entry</span></a>
+            <a class="nav-subitem" href="https://cmpofficepgp.org/case-notice-system/"><span class="ico">📨</span><span>Case Notices</span></a>
+            <a class="nav-subitem" href="https://cmpofficepgp.org/daily-case-management-system/"><span class="ico">🗃️</span><span>Daily Case Mgmt</span></a>
             <a class="nav-subitem active" href="index.html"><span class="ico">📚</span><span>Record Section</span></a>
           </div>
         </div>
-        <a class="nav-item" href="https://cmpofficepgp.org/bill-register-system/" target="_blank"><span class="ico">🧾</span><span class="label">Bill Register</span></a>
-        <a class="nav-item" href="https://cmpofficepgp.org/weekly-court-roster/" target="_blank"><span class="ico">🗂️</span><span class="label">Weekly Court Roster</span></a>
-        <a class="nav-item" href="https://cmpofficepgp.org/camp-office-suite/gallery.html" target="_blank"><span class="ico">🖼️</span><span class="label">Gallery</span></a>
-        <a class="nav-item" href="https://cmpofficepgp.org/camp-office-suite/employee-directory.html" target="_blank"><span class="ico">🗂️</span><span class="label">Employee Directory</span></a>
+        <a class="nav-item" href="https://cmpofficepgp.org/bill-register-system/"><span class="ico">🧾</span><span class="label">Bill Register</span></a>
+        <a class="nav-item" href="https://cmpofficepgp.org/weekly-court-roster/"><span class="ico">🗂️</span><span class="label">Weekly Court Roster</span></a>
+        <a class="nav-item" href="https://cmpofficepgp.org/camp-office-suite/gallery.html"><span class="ico">🖼️</span><span class="label">Gallery</span></a>
+        <a class="nav-item" href="https://cmpofficepgp.org/camp-office-suite/employee-directory.html"><span class="ico">🗂️</span><span class="label">Employee Directory</span></a>
       </nav>
       <div class="sidebar-foot">
-        <a href="https://cmpofficepgp.org/camp-office-suite/chat-system.html" target="_blank"><span class="ico">💬</span><span class="label">Team Chat</span></a>
-        <a href="https://cmpofficepgp.org/camp-office-suite/ai-assistant.html" target="_blank"><span class="ico">🤖</span><span class="label">AI Assistant</span></a>
-        <a href="https://cmpofficepgp.org/camp-office-suite/backup-center.html" target="_blank"><span class="ico">💾</span><span class="label">Backup Center</span></a>
-        <a href="https://cmpofficepgp.org/camp-office-suite/" target="_blank"><span class="ico">←</span><span class="label">Portal</span></a>
+        <a href="https://cmpofficepgp.org/camp-office-suite/chat-system.html"><span class="ico">💬</span><span class="label">Team Chat</span></a>
+        <a href="https://cmpofficepgp.org/camp-office-suite/ai-assistant.html"><span class="ico">🤖</span><span class="label">AI Assistant</span></a>
+        <a href="https://cmpofficepgp.org/camp-office-suite/backup-center.html"><span class="ico">💾</span><span class="label">Backup Center</span></a>
+        <a href="https://cmpofficepgp.org/camp-office-suite/"><span class="ico">←</span><span class="label">Portal</span></a>
       </div>
     </aside>
     <div class="main-col">
@@ -1449,13 +1449,26 @@ function spinHash(uid, code){
   });
 }
 function spinVerifiedKey(uid){ return "spinVerified_" + uid; }
-/* Verification now persists in localStorage (shared across every tab/system on this
-   origin, and across browser restarts) instead of sessionStorage (which was scoped to
-   a single tab and made every other open system/tab ask for a fresh OTP even right
-   after a successful one). It is cleared explicitly on sign-out below, so signing out
-   and back in still asks for a fresh code -- only "staying signed in" skips it. */
-function spinIsVerified(uid){ try{ return localStorage.getItem(spinVerifiedKey(uid)) === "1"; }catch(e){ return false; } }
-function spinMarkVerified(uid){ try{ localStorage.setItem(spinVerifiedKey(uid), "1"); }catch(e){} }
+/* Verification persists in localStorage (shared across every tab/system on this origin,
+   and across browser restarts) instead of sessionStorage (which was scoped to a single
+   tab and made every other open system/tab ask for a fresh OTP even right after a
+   successful one). It is cleared explicitly on sign-out below, so signing out and back
+   in still asks for a fresh code. (3 Oct 2026, per user request) Verification ALSO now
+   expires on its own after SPIN_VERIFIED_TTL_MS (4 hours), even while staying signed in
+   -- previously it lasted forever until sign-out, however many days that took. Now a
+   super_admin is asked for one fresh email code every 4 hours, not just once per
+   "stay signed in" session. */
+var SPIN_VERIFIED_TTL_MS = 4*60*60*1000;
+function spinIsVerified(uid){
+  try{
+    var raw = localStorage.getItem(spinVerifiedKey(uid));
+    if(!raw) return false;
+    var ts = parseInt(raw, 10);
+    if(!ts || isNaN(ts)) return false;
+    return (Date.now() - ts) < SPIN_VERIFIED_TTL_MS;
+  }catch(e){ return false; }
+}
+function spinMarkVerified(uid){ try{ localStorage.setItem(spinVerifiedKey(uid), String(Date.now())); }catch(e){} }
 function spinClearVerified(uid){ try{ if(uid) localStorage.removeItem(spinVerifiedKey(uid)); }catch(e){} }
 function spinGenerateCode(){ return String(Math.floor(100000 + Math.random()*900000)); }
 function spinSendCode(uid, email){
