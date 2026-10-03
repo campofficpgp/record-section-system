@@ -1168,7 +1168,7 @@ en: {
   auth_createAccount:"Create an account", auth_newAccountsNote:"New accounts start as \"Guest\" (view-only). An existing Administrator must upgrade your role afterwards.",
   auth_yourEmail:"Your email", auth_password:"Password", auth_confirmPassword:"Confirm password", auth_createAccountBtn:"Create account",
   auth_backToSignin:"Back to sign in", auth_warnText:"Data is stored online in this system's shared Firebase database. Only Administrators can add, edit, or delete register entries; Guests can view and print everything.",
-  auth_signin:"Sign in", auth_email:"Email", auth_createNewAccount:"Create a new account", auth_forgotPassword:"Forgot password?",
+  auth_signin:"Sign in", auth_signingIn:"Signing in…", auth_email:"Email", auth_createNewAccount:"Create a new account", auth_forgotPassword:"Forgot password?",
   lbl_signedInAs:"Signed in as", btn_logout:"Log out",
   lbl_addEntry:"Add an entry", lbl_caseNo:"Case No.", lbl_courtRefNo:"Trial Court / High Court ref. No.",
   lbl_disposalDate:"Disposal date", lbl_institutionDate:"Date of institution", lbl_nextHearing:"Next date of hearing",
@@ -1270,7 +1270,7 @@ ur: {
   auth_createAccount:"اکاؤنٹ بنائیں", auth_newAccountsNote:"نئے اکاؤنٹس \"Guest\" (صرف دیکھنے کی اجازت) کے ساتھ شروع ہوتے ہیں۔ اس کے بعد کوئی موجودہ Administrator آپ کا رول تبدیل کرے گا۔",
   auth_yourEmail:"آپ کا ای میل", auth_password:"پاسورڈ", auth_confirmPassword:"پاسورڈ کی تصدیق", auth_createAccountBtn:"اکاؤنٹ بنائیں",
   auth_backToSignin:"سائن اِن پر واپس جائیں", auth_warnText:"ڈیٹا اس سسٹم کے مشترکہ Firebase ڈیٹا بیس میں آن لائن محفوظ ہوتا ہے۔ صرف Administrator اندراج شامل، تبدیل یا حذف کر سکتا ہے؛ Guest سب کچھ دیکھ اور پرنٹ کر سکتا ہے۔",
-  auth_signin:"سائن اِن", auth_email:"ای میل", auth_createNewAccount:"نیا اکاؤنٹ بنائیں", auth_forgotPassword:"پاسورڈ بھول گئے؟",
+  auth_signin:"سائن اِن", auth_signingIn:"سائن اِن ہو رہا ہے…", auth_email:"ای میل", auth_createNewAccount:"نیا اکاؤنٹ بنائیں", auth_forgotPassword:"پاسورڈ بھول گئے؟",
   lbl_signedInAs:"بطور سائن اِن", btn_logout:"لاگ آؤٹ",
   lbl_addEntry:"نیا اندراج شامل کریں", lbl_caseNo:"کیس نمبر", lbl_courtRefNo:"ٹرائل کورٹ / ہائی کورٹ ریفرنس نمبر",
   lbl_disposalDate:"نمٹانے کی تاریخ", lbl_institutionDate:"دائر کرنے کی تاریخ", lbl_nextHearing:"اگلی سماعت کی تاریخ",
@@ -1921,7 +1921,7 @@ function resetJrForm(){
   document.getElementById("jr_date").value = "";
   document.getElementById("jr_caseNo").value = "";
   document.getElementById("jr_remarks").value = "";
-  populateSelectOrAdd("jr_bench", BENCH_ENTRIES.filter(function(b){ return b.courtKey===CURRENT_COURT; }).map(function(b){ return b.bench; }), t("opt_selectBench"));
+  populateSelectOrAdd("jr_bench", STANDARD_BENCHES.concat(BENCH_ENTRIES.filter(function(b){ return b.courtKey===CURRENT_COURT; }).map(function(b){ return b.bench; })), t("opt_selectBench"));
   resetSelectOrAdd("jr_bench","jr_bench_new");
   populateSelectOrAdd("jr_nature", BENCH_ENTRIES.filter(function(b){ return b.courtKey===CURRENT_COURT; }).map(function(b){ return b.nature; }), t("opt_selectNature"));
   resetSelectOrAdd("jr_nature","jr_nature_new");
@@ -1968,7 +1968,7 @@ function editBenchEntry(id){
   document.getElementById("jr_courtSelect").value = CURRENT_COURT;
   renderJudicial();
   document.getElementById("jr_date").value = rec.date;
-  populateSelectOrAdd("jr_bench", BENCH_ENTRIES.filter(function(b){ return b.courtKey===CURRENT_COURT; }).map(function(b){ return b.bench; }), t("opt_selectBench"));
+  populateSelectOrAdd("jr_bench", STANDARD_BENCHES.concat(BENCH_ENTRIES.filter(function(b){ return b.courtKey===CURRENT_COURT; }).map(function(b){ return b.bench; })), t("opt_selectBench"));
   setSelectOrAddValue("jr_bench","jr_bench_new", rec.bench||"");
   populateSelectOrAdd("jr_nature", BENCH_ENTRIES.filter(function(b){ return b.courtKey===CURRENT_COURT; }).map(function(b){ return b.nature; }), t("opt_selectNature"));
   setSelectOrAddValue("jr_nature","jr_nature_new", rec.nature||"");
@@ -2003,11 +2003,11 @@ function renderJudicial(){
   var lang = document.documentElement.getAttribute("data-ui-lang") || "en";
   populateCourtSelect("jr_courtSelect", false);
   document.getElementById("jr_courtSelect").value = CURRENT_COURT;
-  populateSelectOrAdd("jr_bench", BENCH_ENTRIES.filter(function(b){ return b.courtKey===CURRENT_COURT; }).map(function(b){ return b.bench; }), t("opt_selectBench"));
+  populateSelectOrAdd("jr_bench", STANDARD_BENCHES.concat(BENCH_ENTRIES.filter(function(b){ return b.courtKey===CURRENT_COURT; }).map(function(b){ return b.bench; })), t("opt_selectBench"));
   populateSelectOrAdd("jr_nature", BENCH_ENTRIES.filter(function(b){ return b.courtKey===CURRENT_COURT; }).map(function(b){ return b.nature; }), t("opt_selectNature"));
   renderJudgeChecks(getCheckedJudges());
 
-  var benchFilterVals = uniqueSorted(BENCH_ENTRIES.filter(function(b){ return b.courtKey===CURRENT_COURT; }).map(function(b){ return b.bench; }));
+  var benchFilterVals = uniqueSorted(STANDARD_BENCHES.concat(BENCH_ENTRIES.filter(function(b){ return b.courtKey===CURRENT_COURT; }).map(function(b){ return b.bench; })));
   var jrfBench = document.getElementById("jrf_bench");
   var keepF = jrfBench.value;
   jrfBench.innerHTML = "<option value=''>"+(lang==="ur"?"کوئی بھی بینچ":"Any bench")+"</option>"+benchFilterVals.map(function(v){ return "<option value='"+esc(v)+"'>"+esc(v)+"</option>"; }).join("");
@@ -2377,10 +2377,16 @@ document.getElementById("setupBtn").addEventListener("click", function(){
 });
 document.getElementById("setup_password2").addEventListener("keydown", function(ev){ if(ev.key==="Enter") document.getElementById("setupBtn").click(); });
 document.getElementById("loginBtn").addEventListener("click", function(){
+  var btn = document.getElementById("loginBtn");
+  if(btn.disabled) return; /* guard against double-clicks while a sign-in is already in progress */
   var email = document.getElementById("login_username").value.trim();
   var pw = document.getElementById("login_password").value;
   var err = document.getElementById("loginError"); err.textContent="";
-  auth.signInWithEmailAndPassword(email, pw).catch(function(){ err.textContent="Incorrect email or password."; });
+  btn.disabled = true; btn.textContent = t("auth_signingIn"); /* visible feedback so the button never looks stuck/frozen */
+  auth.signInWithEmailAndPassword(email, pw).catch(function(){
+    err.textContent="Incorrect email or password.";
+    btn.disabled = false; btn.textContent = t("auth_signin");
+  });
 });
 document.getElementById("login_password").addEventListener("keydown", function(ev){ if(ev.key==="Enter") document.getElementById("loginBtn").click(); });
 document.getElementById("logoutBtn").addEventListener("click", function(){ auth.signOut(); });
@@ -2592,6 +2598,13 @@ var cmFieldRows = [];
 var cmEditId = null;
 var JUDGES = [];
 var BENCH_ENTRIES = [];
+/* Standard Bench dropdown options -- same "Bench - I" .. "Bench - VII" naming the Weekly Court
+   Roster system already uses, so staff pick a bench from a ready list instead of typing it by
+   hand every time. Shown for all five courts (the user asked for one shared list, not a
+   per-court one). Always merged with whatever bench names are already saved on past entries
+   (see the three populateSelectOrAdd("jr_bench", ...) calls below), so nothing already in use
+   is ever hidden, and "+ Add a new value" still lets anyone add a bench not in this list. */
+var STANDARD_BENCHES = ["Bench - I","Bench - II","Bench - III","Bench - IV","Bench - V","Bench - VI","Bench - VII"];
 var DUTY_ROSTER = [];
 var CURRENT_COURT = COURT_TYPES[0].key;
 var benchEditId = null;
