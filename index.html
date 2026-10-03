@@ -1491,7 +1491,14 @@ function spinGate(uid, data, proceedFn){
   if(spinIsVerified(uid)){ proceedFn(); return; }
   if(SPIN_GATE_OPEN_FOR === uid){ return; } /* already open for this uid -- ignore re-entrant snapshot fires */
   var ov = document.getElementById("spinGateOverlay");
-  if(!ov || typeof emailjs === "undefined"){ proceedFn(); return; } /* gate/EmailJS missing -- fail open rather than lock the app */
+  if(!ov || typeof emailjs === "undefined"){
+    var spinFailLang = document.documentElement.getAttribute("data-ui-lang") || "en";
+    toast(spinFailLang === "ur"
+      ? "سیکیورٹی چیک اس وقت دستیاب نہیں۔ آپ کی حفاظت کے لیے رسائی روک دی گئی ہے — براہ کرم سسٹم ایڈمن سے رابطہ کریں یا بعد میں دوبارہ کوشش کریں۔"
+      : "Security check unavailable right now. For your protection, access has been blocked -- please contact your system administrator or try again later.");
+    auth.signOut();
+    return;
+  } /* gate/EmailJS missing -- fail CLOSED (block access) instead of failing open */
   SPIN_GATE_OPEN_FOR = uid;
   var input1 = document.getElementById("spinGateInput1");
   var err = document.getElementById("spinGateError");
