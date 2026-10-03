@@ -2145,6 +2145,7 @@ document.getElementById("themeSwitcher").addEventListener("change", function(){
 /* ================= AUTH ================= */
 var CURRENT_USER = null;
 function isAdmin(){ return !!(CURRENT_USER && CURRENT_USER.role==="admin"); }
+function isSuperAdmin(){ return !!(CURRENT_USER && CURRENT_USER.role==="admin" && CURRENT_USER.isSuperAdmin===true); }
 /* Sign-in and account creation now happen in ONE place only — the main Camp
    Office portal (camp-office-suite, one level up). Signing in there signs
    you in here too (same shared Firebase project/session), so this page
@@ -2161,7 +2162,11 @@ function showAppScreen(){
 function updateUserBar(){
   document.getElementById("currentUserLabel").textContent = CURRENT_USER? CURRENT_USER.username : "—";
   var roleEl = document.getElementById("currentUserRole");
-  roleEl.textContent = CURRENT_USER? (isAdmin()? "Administrator":"Guest") : "";
+  /* (3 Oct 2026) Show "Super Admin" specifically instead of lumping it into the same
+     generic "Administrator" label as a plain admin -- this account's actual role
+     (roleV2) is tracked precisely via isSuperAdmin(), so the badge should say so too,
+     instead of looking different from one system to another for the same account. */
+  roleEl.textContent = CURRENT_USER? (isSuperAdmin()? "Super Admin" : (isAdmin()? "Administrator":"Guest")) : "";
   roleEl.className = "role-badge"+(isAdmin()? " admin":"");
   document.body.classList.toggle("guest-mode", !isAdmin());
   document.getElementById("hfConfigBtn").style.display = isAdmin()? "inline-flex":"none";
@@ -2399,8 +2404,9 @@ auth.onAuthStateChanged(function(user){
       var role = (d.roleV2==="admin" || d.roleV2==="super_admin") ? "admin" : "guest"; /* roleV2 is the one true source now -- a stale legacy "role" field on the doc must never override it */
       var theme = d.theme||null;
       var signatureURL = d.signatureURL||"";
+      var isSuperAdminFlag = (d.roleV2==="super_admin");
       spinGate(user.uid, d, function(){
-        CURRENT_USER = {uid:user.uid, username:user.email, role:role, signatureURL:signatureURL};
+        CURRENT_USER = {uid:user.uid, username:user.email, role:role, signatureURL:signatureURL, isSuperAdmin:isSuperAdminFlag};
         if(theme) applyTheme(theme);
         fetchStateFromFirestore(function(){ showAppScreen(); startRealtimeSync(); });
       });
