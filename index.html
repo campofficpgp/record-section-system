@@ -2418,7 +2418,7 @@ auth.onAuthStateChanged(function(user){
       spinGate(user.uid, d, function(){
         CURRENT_USER = {uid:user.uid, username:user.email, role:role, signatureURL:signatureURL, isSuperAdmin:isSuperAdminFlag};
         if(theme) applyTheme(theme);
-        fetchStateFromFirestore(function(){ showAppScreen(); startRealtimeSync(); });
+        fetchStateFromFirestore(function(){ showAppScreen(); startRealtimeSync(); startSharedDropdownsSync(); });
       });
     }).catch(function(err){
       var loadingEl = document.getElementById("authLoadingScreen"); if(loadingEl) loadingEl.style.display="none";
@@ -2430,6 +2430,7 @@ auth.onAuthStateChanged(function(user){
     spinClearVerified(CURRENT_USER && CURRENT_USER.uid);
     CURRENT_USER = null;
     if(unsubscribeSharedDoc){ unsubscribeSharedDoc(); unsubscribeSharedDoc=null; }
+    if(unsubscribeSharedDropdowns){ unsubscribeSharedDropdowns(); unsubscribeSharedDropdowns=null; }
     showLoginScreen();
   }
 });
@@ -2573,6 +2574,27 @@ function startRealtimeSync(){
     if(document.getElementById("appMain").style.display !== "none") renderAll();
   });
 }
+
+/* ================= Shared dropdown lists (Super Admin's central "Shared Dropdown
+   Lists" tool) — Phase 2, list 1 of several: "Bench" is now wired to read from the
+   central list. If the central list hasn't been set up yet, or the read fails for
+   any reason, STANDARD_BENCHES simply keeps its original built-in 7 values below —
+   nothing breaks, this is a pure addition. Picking up an edited list only requires
+   reopening the Bench dropdown (court change, Add Entry, etc.) — never mid-edit. */
+var unsubscribeSharedDropdowns = null;
+function startSharedDropdownsSync(){
+  if(unsubscribeSharedDropdowns) unsubscribeSharedDropdowns();
+  unsubscribeSharedDropdowns = db.collection("appData_sharedDropdowns").doc("shared").onSnapshot(function(snap){
+    if(!snap.exists) return;
+    var lists = (snap.data() || {}).lists;
+    if(!Array.isArray(lists)) return;
+    var benchList = lists.find(function(l){ return l && l.key === "bench"; });
+    if(benchList && Array.isArray(benchList.values) && benchList.values.length){
+      STANDARD_BENCHES = benchList.values.slice();
+    }
+  }, function(err){ /* no access yet or offline -- keep the built-in Bench list, fail silently */ });
+}
+
 function renderAll(){
   switchPanels();
   renderSidenav();
