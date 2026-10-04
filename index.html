@@ -356,7 +356,14 @@ html,body{overflow-x:hidden;}
 <div class="pb-print-extra-fields" id="pbPrintExtraFields"></div>
 
 
-<div class="fullscreen-overlay auth-screen" id="authLoginScreen" style="display:flex;">
+<div class="fullscreen-overlay" id="authLoadingScreen" style="display:flex;">
+  <div class="auth-card" style="text-align:center;">
+    <h2 data-i18n="auth_checkingSignin">Checking sign-in…</h2>
+    <div class="auth-sub" data-i18n="auth_checkingSigninSub">Please wait a moment…</div>
+  </div>
+</div>
+
+<div class="fullscreen-overlay auth-screen" id="authLoginScreen" style="display:none;">
   <div class="auth-card">
     <h2 data-i18n="auth_signin">Sign in</h2>
     <div class="auth-sub">Record Section — Case Registers — Camp Office Prosecutor General Punjab</div>
@@ -1150,6 +1157,7 @@ en: {
   auth_yourEmail:"Your email", auth_password:"Password", auth_confirmPassword:"Confirm password", auth_createAccountBtn:"Create account",
   auth_backToSignin:"Back to sign in", auth_warnText:"Data is stored online in this system's shared Firebase database. Only Administrators can add, edit, or delete register entries; Guests can view and print everything.",
   auth_signin:"Sign in", auth_signingIn:"Signing in…", auth_email:"Email", auth_createNewAccount:"Create a new account", auth_forgotPassword:"Forgot password?",
+  auth_checkingSignin:"Checking sign-in…", auth_checkingSigninSub:"Please wait a moment…",
   lbl_signedInAs:"Signed in as", btn_logout:"Log out",
   lbl_addEntry:"Add an entry", lbl_caseNo:"Case No.", lbl_courtRefNo:"Trial Court / High Court ref. No.",
   lbl_disposalDate:"Disposal date", lbl_institutionDate:"Date of institution", lbl_nextHearing:"Next date of hearing",
@@ -1252,6 +1260,7 @@ ur: {
   auth_yourEmail:"آپ کا ای میل", auth_password:"پاسورڈ", auth_confirmPassword:"پاسورڈ کی تصدیق", auth_createAccountBtn:"اکاؤنٹ بنائیں",
   auth_backToSignin:"سائن اِن پر واپس جائیں", auth_warnText:"ڈیٹا اس سسٹم کے مشترکہ Firebase ڈیٹا بیس میں آن لائن محفوظ ہوتا ہے۔ صرف Administrator اندراج شامل، تبدیل یا حذف کر سکتا ہے؛ Guest سب کچھ دیکھ اور پرنٹ کر سکتا ہے۔",
   auth_signin:"سائن اِن", auth_signingIn:"سائن اِن ہو رہا ہے…", auth_email:"ای میل", auth_createNewAccount:"نیا اکاؤنٹ بنائیں", auth_forgotPassword:"پاسورڈ بھول گئے؟",
+  auth_checkingSignin:"لاگ اِن کی جانچ ہو رہی ہے…", auth_checkingSigninSub:"براہ کرم ایک لمحہ انتظار کریں…",
   lbl_signedInAs:"بطور سائن اِن", btn_logout:"لاگ آؤٹ",
   lbl_addEntry:"نیا اندراج شامل کریں", lbl_caseNo:"کیس نمبر", lbl_courtRefNo:"ٹرائل کورٹ / ہائی کورٹ ریفرنس نمبر",
   lbl_disposalDate:"نمٹانے کی تاریخ", lbl_institutionDate:"دائر کرنے کی تاریخ", lbl_nextHearing:"اگلی سماعت کی تاریخ",
@@ -2154,6 +2163,7 @@ function isSuperAdmin(){ return !!(CURRENT_USER && CURRENT_USER.role==="admin" &
 function showSetupScreen(){ location.href = "../"; }
 function showLoginScreen(){ location.href = "../"; }
 function showAppScreen(){
+  var loadingEl = document.getElementById("authLoadingScreen"); if(loadingEl) loadingEl.style.display="none";
   document.getElementById("authSetupScreen").style.display="none"; document.getElementById("authLoginScreen").style.display="none"; document.getElementById("appMain").style.display="block";
   var curTheme = document.documentElement.getAttribute("data-theme") || "navy";
   var themeSel = document.getElementById("themeSwitcher"); if(themeSel) themeSel.value = curTheme;
@@ -2410,8 +2420,13 @@ auth.onAuthStateChanged(function(user){
         if(theme) applyTheme(theme);
         fetchStateFromFirestore(function(){ showAppScreen(); startRealtimeSync(); });
       });
-    }).catch(function(err){ toast("Could not load your account: "+err.message); });
+    }).catch(function(err){
+      var loadingEl = document.getElementById("authLoadingScreen"); if(loadingEl) loadingEl.style.display="none";
+      document.getElementById("authLoginScreen").style.display="flex";
+      toast("Could not load your account: "+err.message);
+    });
   } else {
+    var loadingEl2 = document.getElementById("authLoadingScreen"); if(loadingEl2) loadingEl2.style.display="none";
     spinClearVerified(CURRENT_USER && CURRENT_USER.uid);
     CURRENT_USER = null;
     if(unsubscribeSharedDoc){ unsubscribeSharedDoc(); unsubscribeSharedDoc=null; }
