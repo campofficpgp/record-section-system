@@ -2696,6 +2696,14 @@ function renderSidenav(){
       html += "<button class='tab-btn"+(isActive? " active":"")+"' data-key='"+r.key+"'><span class='dot'></span> "+esc(label)+"</button>";
     });
   }
+  /* Professional order: court-facing work first (Bench & Cause List, Duty Roster), then
+     office records (File Movement, Letters), then Custom Registers, then Backup/Restore. */
+  html += "<div class='navnote'>"+esc(t("nav_judicial"))+"</div>";
+  html += "<button class='tab-btn"+(CURRENT_VIEW==="judicial"? " active":"")+"' data-view='judicial'><span class='dot'></span> "+esc(t("jr_navBench"))+"</button>";
+  html += "<button class='tab-btn"+(CURRENT_VIEW==="dutyroster"? " active":"")+"' data-view='dutyroster'><span class='dot'></span> "+esc(t("jr_navDuty"))+"</button>";
+  if(isAdmin()){
+    html += "<button class='tab-btn"+(CURRENT_VIEW==="judgesmanage"? " active":"")+"' data-view='judgesmanage'><span class='dot'></span> "+esc(t("jr_navJudges"))+"</button>";
+  }
   html += "<div class='navnote'>"+esc(t("nav_other"))+"</div>";
   html += "<button class='tab-btn"+(CURRENT_VIEW==="filemovement"? " active":"")+"' data-view='filemovement'><span class='dot'></span> "+esc(t("fm_title"))+"</button>";
   html += "<button class='tab-btn"+(CURRENT_VIEW==="letters"? " active":"")+"' data-view='letters'><span class='dot'></span> "+esc(t("nav_letters"))+"</button>";
@@ -2709,12 +2717,6 @@ function renderSidenav(){
     if(isAdmin()){
       html += "<button class='tab-btn"+(CURRENT_VIEW==="custommanage"? " active":"")+"' data-view='custommanage'><span class='dot'></span> "+esc(t("cm_manageBtn"))+"</button>";
     }
-  }
-  html += "<div class='navnote'>"+esc(t("nav_judicial"))+"</div>";
-  html += "<button class='tab-btn"+(CURRENT_VIEW==="judicial"? " active":"")+"' data-view='judicial'><span class='dot'></span> "+esc(t("jr_navBench"))+"</button>";
-  html += "<button class='tab-btn"+(CURRENT_VIEW==="dutyroster"? " active":"")+"' data-view='dutyroster'><span class='dot'></span> "+esc(t("jr_navDuty"))+"</button>";
-  if(isAdmin()){
-    html += "<button class='tab-btn"+(CURRENT_VIEW==="judgesmanage"? " active":"")+"' data-view='judgesmanage'><span class='dot'></span> "+esc(t("jr_navJudges"))+"</button>";
   }
   html += "<div class='navnote'>"+esc(t("nav_data"))+"</div>";
   html += "<button class='data-btn' id='btnBackup'>"+esc(t("btn_backup"))+"</button>";
