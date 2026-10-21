@@ -206,6 +206,24 @@ html,body{overflow-x:hidden;}
   body.guest-mode .guest-banner{display:block;}
   body.guest-mode .entry-form{display:none !important;}
   body.guest-mode .row-actions button:not(.view-only-btn){display:none !important;}
+  /* per-tab read-only (users with their own ticks): same as guest-mode, but for ONE tab only */
+  body.ro-be #panel-judicial .entry-form, body.ro-dr #panel-dutyroster .entry-form, body.ro-fm #panel-filemovement .entry-form,
+  body.ro-lt #panel-letters .entry-form, body.ro-cr #panel-custom .entry-form,
+  body.ro-cf #panel-custommanage .entry-form, body.ro-cf #panel-judgesmanage .entry-form, body.ro-cf #panel-register .entry-form{display:none !important;}
+  body.ro-be #panel-judicial .row-actions button:not(.view-only-btn), body.ro-dr #panel-dutyroster .row-actions button:not(.view-only-btn),
+  body.ro-fm #panel-filemovement .row-actions button:not(.view-only-btn), body.ro-lt #panel-letters .row-actions button:not(.view-only-btn),
+  body.ro-cr #panel-custom .row-actions button:not(.view-only-btn),
+  body.ro-cf #panel-custommanage .row-actions button:not(.view-only-btn), body.ro-cf #panel-judgesmanage .row-actions button:not(.view-only-btn),
+  body.ro-cf #panel-register .row-actions button:not(.view-only-btn){display:none !important;}
+  /* per-user ticks: a button the user has no tick for is dimmed (the Firestore rules are the real lock) */
+  .perm-off{opacity:.42; cursor:not-allowed; filter:grayscale(.4);}
+  .no-access{position:fixed; inset:0; z-index:700; display:none; align-items:center; justify-content:center; background:rgba(15,25,45,.96); padding:16px;}
+  .no-access.show{display:flex;}
+  .no-access .na-card{max-width:460px; width:100%; background:#17294a; border:1px solid #3a4f7d; border-radius:14px; padding:26px 24px; text-align:center; color:#fff;}
+  .no-access h2{margin:0 0 8px; font-size:20px; color:#ffd77a;}
+  .no-access .na-ur{direction:rtl; font-size:15px; line-height:2;}
+  .no-access .na-en{font-size:12.5px; opacity:.88;}
+  .no-access a.na-btn{display:inline-block; margin-top:14px; border:1px solid #d4a13d; background:#d4a13d; color:#17294a; border-radius:8px; padding:9px 16px; font-weight:700; font-size:14px; text-decoration:none;}
 
   .fullscreen-overlay{position:fixed;inset:0;background:linear-gradient(160deg,var(--navy-dark),var(--navy));display:flex;align-items:center;justify-content:center;z-index:500;padding:20px;}
   .auth-card{background:#fff;border-radius:8px;padding:30px 32px;width:100%;max-width:420px;box-shadow:0 12px 40px rgba(0,0,0,.35);}
@@ -400,6 +418,15 @@ html,body{overflow-x:hidden;}
 <div class="pb-print-extra-fields" id="pbPrintExtraFields"></div>
 
 
+<div class="no-access" id="rsNoAccess" role="alertdialog" aria-modal="true">
+  <div class="na-card">
+    <h2>رسائی کی اجازت نہیں / No access</h2>
+    <div class="na-ur">آپ کو ریکارڈ سیکشن کھولنے کی اجازت نہیں دی گئی۔ ضرورت ہو تو سپر ایڈمن سے رابطہ کریں۔</div>
+    <div class="na-en">You have not been given permission to open the Record Section. Ask the Super Admin if you need it.</div>
+    <a class="na-btn" href="https://cmpofficepgp.org/camp-office-suite/">پورٹل پر جائیں / Go to portal</a>
+  </div>
+</div>
+
 <div class="fullscreen-overlay" id="authLoadingScreen" style="display:flex;">
   <div class="auth-card" style="text-align:center;">
     <h2 data-i18n="auth_checkingSignin">Checking sign-in…</h2>
@@ -494,8 +521,8 @@ html,body{overflow-x:hidden;}
   <div class="userbar">
     
     
-    <button id="globalPrintBtn" data-i18n="btn_printCurrent">Print current view</button>
-    <button id="globalPdfBtn" title="Downloads a ready PDF file directly" data-i18n="btn_downloadPdf">📄 Download PDF</button>
+    <button id="globalPrintBtn" data-perm="x" data-i18n="btn_printCurrent">Print current view</button>
+    <button id="globalPdfBtn" data-perm="x" title="Downloads a ready PDF file directly" data-i18n="btn_downloadPdf">📄 Download PDF</button>
     <button id="hfConfigBtn" type="button" class="btn ghost small" style="display:none;" title="Report header/footer fields / رپورٹ ہیڈر/فوٹر فیلڈز">☰ Header/Footer</button>
     <button id="colsConfigBtn" type="button" class="btn ghost small" style="display:none;" title="Choose which columns to print / پرنٹ کے لیے کالم منتخب کریں">☰ Select Columns</button>
     <button id="btnHelp" data-i18n="nav_help">Help / Guide</button>
@@ -634,7 +661,7 @@ html,body{overflow-x:hidden;}
         <div class="btnbar">
           <button class="btn" id="r_saveBtn" data-i18n="btn_saveEntry">Save entry</button>
           <button class="btn ghost" id="r_cancelBtn" style="display:none;" data-i18n="btn_cancelEdit">Cancel edit</button>
-          <button class="btn secondary" id="r_exportBtn" data-i18n="btn_exportCsv">Export visible rows (CSV)</button>
+          <button class="btn secondary" id="r_exportBtn" data-perm="x" data-i18n="btn_exportCsv">Export visible rows (CSV)</button>
         </div>
       </div>
 
@@ -715,7 +742,7 @@ html,body{overflow-x:hidden;}
         <div class="btnbar">
           <button class="btn" id="fm_saveBtn" data-i18n="btn_saveEntry">Save entry</button>
           <button class="btn ghost" id="fm_cancelBtn" style="display:none;" data-i18n="btn_cancelEdit">Cancel edit</button>
-          <button class="btn secondary" id="fm_exportBtn" data-i18n="btn_exportCsv">Export visible rows (CSV)</button>
+          <button class="btn secondary" id="fm_exportBtn" data-perm="x" data-i18n="btn_exportCsv">Export visible rows (CSV)</button>
         </div>
       </div>
 
@@ -803,7 +830,7 @@ html,body{overflow-x:hidden;}
         <div class="btnbar">
           <button class="btn" id="lt_saveBtn" data-i18n="btn_saveEntry">Save entry</button>
           <button class="btn ghost" id="lt_cancelBtn" style="display:none;" data-i18n="btn_cancelEdit">Cancel edit</button>
-          <button class="btn secondary" id="lt_exportBtn" data-i18n="btn_exportCsv">Export visible rows (CSV)</button>
+          <button class="btn secondary" id="lt_exportBtn" data-perm="x" data-i18n="btn_exportCsv">Export visible rows (CSV)</button>
         </div>
       </div>
 
@@ -854,7 +881,7 @@ html,body{overflow-x:hidden;}
         <div class="btnbar">
           <button class="btn" id="cust_saveBtn" data-i18n="btn_saveEntry">Save entry</button>
           <button class="btn ghost" id="cust_cancelBtn" style="display:none;" data-i18n="btn_cancelEdit">Cancel edit</button>
-          <button class="btn secondary" id="cust_exportBtn" data-i18n="btn_exportCsv">Export visible rows (CSV)</button>
+          <button class="btn secondary" id="cust_exportBtn" data-perm="x" data-i18n="btn_exportCsv">Export visible rows (CSV)</button>
         </div>
       </div>
 
@@ -945,7 +972,7 @@ html,body{overflow-x:hidden;}
         <div class="btnbar">
           <button class="btn" id="jr_saveBtn" data-i18n="btn_saveEntry">Save entry</button>
           <button class="btn ghost" id="jr_cancelBtn" style="display:none;" data-i18n="btn_cancelEdit">Cancel edit</button>
-          <button class="btn secondary" id="jr_exportBtn" data-i18n="btn_exportCsv">Export visible rows (CSV)</button>
+          <button class="btn secondary" id="jr_exportBtn" data-perm="x" data-i18n="btn_exportCsv">Export visible rows (CSV)</button>
         </div>
       </div>
 
@@ -1024,7 +1051,7 @@ html,body{overflow-x:hidden;}
         <div class="btnbar">
           <button class="btn" id="dr_saveBtn" data-i18n="btn_saveEntry">Save entry</button>
           <button class="btn ghost" id="dr_cancelBtn" style="display:none;" data-i18n="btn_cancelEdit">Cancel edit</button>
-          <button class="btn secondary" id="dr_exportBtn" data-i18n="btn_exportCsv">Export visible rows (CSV)</button>
+          <button class="btn secondary" id="dr_exportBtn" data-perm="x" data-i18n="btn_exportCsv">Export visible rows (CSV)</button>
         </div>
       </div>
       <div class="search-bar">
@@ -1124,6 +1151,7 @@ html,body{overflow-x:hidden;}
 
 <input type="file" id="restoreFile" accept="application/json" style="display:none">
 
+<script src="https://cmpofficepgp.org/camp-office-suite/camp-perm.js"></script>
 <script>
 /* ================= REGISTER TYPES =================
    (3 Oct 2026) By the user's explicit request, all 9 of the built-in case registers that
@@ -1701,6 +1729,7 @@ function renderCustomRegister(){
   }).join("");
 }
 document.getElementById("cust_saveBtn").addEventListener("click", function(){
+  if(!canTab('cr')){ rsDenied(); return; }
   var def = customDefById(CURRENT_CUSTOM_DEF_ID);
   if(!def) return;
   var values = {};
@@ -1726,6 +1755,7 @@ document.getElementById("cust_saveBtn").addEventListener("click", function(){
 });
 document.getElementById("cust_cancelBtn").addEventListener("click", resetCustomForm);
 function editCustomRecord(id){
+  if(!canTab('cr')){ rsDenied(); return; }
   var rec = CUSTOM_RECORDS.find(function(x){ return x.id===id; });
   if(!rec) return;
   var def = customDefById(rec.defId);
@@ -1743,6 +1773,7 @@ function editCustomRecord(id){
   document.getElementById("panel-custom").scrollIntoView({behavior:"smooth"});
 }
 function deleteCustomRecord(id){
+  if(!canTab('cr')){ rsDenied(); return; }
   if(!confirm("Delete this entry?")) return;
   CUSTOM_RECORDS = CUSTOM_RECORDS.filter(function(x){ return x.id!==id; });
   STATE.customRecords = CUSTOM_RECORDS;
@@ -1753,6 +1784,7 @@ function deleteCustomRecord(id){
 document.getElementById("custf_query").addEventListener("input", renderCustomRegister);
 document.getElementById("custf_clear").addEventListener("click", function(){ document.getElementById("custf_query").value=""; renderCustomRegister(); });
 document.getElementById("cust_exportBtn").addEventListener("click", function(){
+  if(!canTab('x')){ rsDenied(); return; }
   var lang = document.documentElement.getAttribute("data-ui-lang") || "en";
   var def = customDefById(CURRENT_CUSTOM_DEF_ID);
   if(!def) return;
@@ -1804,7 +1836,7 @@ function cmAddFieldRow(existing){
   renderCmFieldRows();
 }
 function cmRemoveFieldRow(idx){ cmFieldRows.splice(idx,1); renderCmFieldRows(); }
-document.getElementById("cm_addFieldBtn").addEventListener("click", function(){ cmAddFieldRow(); });
+document.getElementById("cm_addFieldBtn").addEventListener("click", function(){ if(!canTab('cf')){ rsDenied(); return; } cmAddFieldRow(); });
 function resetCmForm(){
   cmEditId = null;
   cmFieldRows = [];
@@ -1816,6 +1848,7 @@ function resetCmForm(){
   renderCmFieldRows();
 }
 document.getElementById("cm_saveBtn").addEventListener("click", function(){
+  if(!canTab('cf')){ rsDenied(); return; }
   var nameEn = document.getElementById("cm_nameEn").value.trim();
   var nameUr = document.getElementById("cm_nameUr").value.trim();
   if(!nameEn && !nameUr){ toast("Register name is required."); return; }
@@ -1841,6 +1874,7 @@ document.getElementById("cm_saveBtn").addEventListener("click", function(){
 });
 document.getElementById("cm_cancelBtn").addEventListener("click", resetCmForm);
 function editCustomDef(id){
+  if(!canTab('cf')){ rsDenied(); return; }
   var def = customDefById(id);
   if(!def) return;
   cmEditId = id;
@@ -1853,6 +1887,7 @@ function editCustomDef(id){
   document.getElementById("panel-custommanage").scrollIntoView({behavior:"smooth"});
 }
 function deleteCustomDef(id){
+  if(!canTab('cf')){ rsDenied(); return; }
   if(!confirm("Delete this custom register? Its past entries stay safely stored, just hidden until a register with this id exists again.")) return;
   CUSTOM_DEFS = CUSTOM_DEFS.filter(function(x){ return x.id!==id; });
   STATE.customRegisterDefs = CUSTOM_DEFS;
@@ -1897,6 +1932,7 @@ function resetJmForm(){
   if(CURRENT_COURT) document.getElementById("jm_court").value = CURRENT_COURT;
 }
 document.getElementById("jm_saveBtn").addEventListener("click", function(){
+  if(!canTab('cf')){ rsDenied(); return; }
   var courtKey = document.getElementById("jm_court").value;
   var name = document.getElementById("jm_name").value.trim();
   var designation = document.getElementById("jm_designation").value.trim();
@@ -1918,6 +1954,7 @@ document.getElementById("jm_saveBtn").addEventListener("click", function(){
 });
 document.getElementById("jm_cancelBtn").addEventListener("click", resetJmForm);
 function editJudge(id){
+  if(!canTab('cf')){ rsDenied(); return; }
   var rec = JUDGES.find(function(x){ return x.id===id; });
   if(!rec) return;
   judgeEditId = id;
@@ -1930,6 +1967,7 @@ function editJudge(id){
   document.getElementById("panel-judgesmanage").scrollIntoView({behavior:"smooth"});
 }
 function deleteJudge(id){
+  if(!canTab('cf')){ rsDenied(); return; }
   if(!confirm("Remove this judge from the list?")) return;
   JUDGES = JUDGES.filter(function(x){ return x.id!==id; });
   STATE.judges = JUDGES;
@@ -1989,6 +2027,7 @@ document.getElementById("jr_courtSelect").addEventListener("change", function(){
   renderJudicial();
 });
 document.getElementById("jr_saveBtn").addEventListener("click", function(){
+  if(!canTab('be')){ rsDenied(); return; }
   var date = document.getElementById("jr_date").value;
   var bench = getSelectOrAddValue("jr_bench","jr_bench_new");
   var caseNo = document.getElementById("jr_caseNo").value.trim();
@@ -2017,6 +2056,7 @@ document.getElementById("jr_saveBtn").addEventListener("click", function(){
 });
 document.getElementById("jr_cancelBtn").addEventListener("click", resetJrForm);
 function editBenchEntry(id){
+  if(!canTab('be')){ rsDenied(); return; }
   var rec = BENCH_ENTRIES.find(function(x){ return x.id===id; });
   if(!rec) return;
   benchEditId = id;
@@ -2036,6 +2076,7 @@ function editBenchEntry(id){
   document.getElementById("panel-judicial").scrollIntoView({behavior:"smooth"});
 }
 function deleteBenchEntry(id){
+  if(!canTab('be')){ rsDenied(); return; }
   if(!confirm("Delete this entry?")) return;
   BENCH_ENTRIES = BENCH_ENTRIES.filter(function(x){ return x.id!==id; });
   STATE.benchEntries = BENCH_ENTRIES;
@@ -2090,6 +2131,7 @@ document.getElementById("jrf_clear").addEventListener("click", function(){
   renderJudicial();
 });
 document.getElementById("jr_exportBtn").addEventListener("click", function(){
+  if(!canTab('x')){ rsDenied(); return; }
   var list = filteredBenchEntries();
   var rows = [["Sr#","Date","Bench","Judges","Case No.","Nature of case","Remarks"]];
   list.forEach(function(r,i){ rows.push([i+1, r.date, r.bench, (r.judges||[]).join("; "), r.caseNo, r.nature, r.remarks]); });
@@ -2109,6 +2151,7 @@ function resetDrForm(){
   resetSelectOrAdd("dr_court","dr_court_new");
 }
 document.getElementById("dr_saveBtn").addEventListener("click", function(){
+  if(!canTab('dr')){ rsDenied(); return; }
   var date = document.getElementById("dr_date").value;
   var name = document.getElementById("dr_name").value.trim();
   var location = getSelectOrAddValue("dr_court","dr_court_new");
@@ -2130,6 +2173,7 @@ document.getElementById("dr_saveBtn").addEventListener("click", function(){
 });
 document.getElementById("dr_cancelBtn").addEventListener("click", resetDrForm);
 function editDutyEntry(id){
+  if(!canTab('dr')){ rsDenied(); return; }
   var rec = DUTY_ROSTER.find(function(x){ return x.id===id; });
   if(!rec) return;
   dutyEditId = id;
@@ -2143,6 +2187,7 @@ function editDutyEntry(id){
   document.getElementById("panel-dutyroster").scrollIntoView({behavior:"smooth"});
 }
 function deleteDutyEntry(id){
+  if(!canTab('dr')){ rsDenied(); return; }
   if(!confirm("Delete this entry?")) return;
   DUTY_ROSTER = DUTY_ROSTER.filter(function(x){ return x.id!==id; });
   STATE.dutyRoster = DUTY_ROSTER;
@@ -2181,6 +2226,7 @@ document.getElementById("drf_clear").addEventListener("click", function(){
   renderDutyRoster();
 });
 document.getElementById("dr_exportBtn").addEventListener("click", function(){
+  if(!canTab('x')){ rsDenied(); return; }
   var list = filteredDutyRoster();
   var rows = [["Sr#","Date","Name & designation","Court / duty location","Remarks"]];
   list.forEach(function(r,i){ rows.push([i+1, r.date, r.name, r.location, r.remarks]); });
@@ -2208,6 +2254,144 @@ document.getElementById("themeSwitcher").addEventListener("change", function(){
 var CURRENT_USER = null;
 function isAdmin(){ return !!(CURRENT_USER && CURRENT_USER.role==="admin"); }
 function isSuperAdmin(){ return !!(CURRENT_USER && CURRENT_USER.role==="admin" && CURRENT_USER.isSuperAdmin===true); }
+
+/* ===== per-user ticks for this page (key "recordsec"), set by the Super Admin for each user in the portal.
+   v = open the system; one EDIT tick per tab (add / edit / delete in that tab):
+   be = Bench & Cause List, dr = Duty Roster, fm = File Movement, lt = Letters, cr = Custom registers (data),
+   cf = settings / admin work (Judges tab, Manage Custom Registers, header/footer, print columns);
+   x = export / print / PDF / Excel(CSV) / WhatsApp / Backup download.
+   A user with NO ticks of his own keeps exactly what his role had before (Admin: everything; others: view + print).
+   Restore from file stays Super Admin / ordinary Administrator only.  This only decides what the SCREEN shows
+   and which keys a save may send; the Firestore rules are the real lock. ===== */
+var RS_ME = null;            /* users/{uid} data */
+var RS_STARTED = false;      /* data listeners / first load started (only for a user with the View tick) */
+var RS_UNSUB_USER = null;
+var RS_PERM_SIG = "";
+var RS_BLOCKED = [];
+var RS_TABS = ["be","dr","fm","lt","cr","cf"];
+/* top-level Firestore keys of appData_recordsection/shared that each write tick owns */
+var RS_TAB_KEYS = {
+  be: ["benchEntries"],
+  dr: ["dutyRoster"],
+  fm: ["fileMovements"],
+  lt: ["letters"],
+  cr: ["customRecords"],
+  cf: ["judges","judgesSeeded","customRegisterDefs","records","preparedByName","preparedByDesignation","officeAddress","officeContact","headerFooterConfig","printColumns"]
+};
+function rsPermKnown(){
+  return !!(window.CampPerm && typeof window.CampPerm.can === "function" && typeof window.CampPerm.pageInfo === "function" && window.CampPerm.pageInfo("recordsec"));
+}
+function rsHasCustom(){
+  return !!(rsPermKnown() && RS_ME && RS_ME.perms && RS_ME.perms.recordsec && typeof RS_ME.perms.recordsec === "object");
+}
+function canTab(act){
+  if(!CURRENT_USER || !RS_ME){ return act==="v" || act==="x"; }
+  if(rsPermKnown()){
+    /* roleV2 is the one true source on this page, so pass exactly that (a stale legacy "role" field must never widen anything) */
+    return window.CampPerm.can({roleV2: RS_ME.roleV2 || "viewer", perms: RS_ME.perms}, "recordsec", act);
+  }
+  /* camp-perm.js missing or an old cached copy that does not know this page: behave as before the ticks existed */
+  if(isAdmin()){ return true; }
+  return act==="v" || act==="x";
+}
+function isTickUser(){
+  if(!CURRENT_USER || !rsPermKnown()){ return false; }
+  if(isSuperAdmin()){ return false; }
+  return !isAdmin() || rsHasCustom();
+}
+/* the old "Administrator only" screen features (Judges tab, Manage Custom Registers, header/footer, print columns) */
+function adminUi(){ return isTickUser() ? canTab("cf") : isAdmin(); }
+function rsAnyWrite(){ return RS_TABS.some(function(k){ return canTab(k); }); }
+function rsDenied(){
+  toast("آپ کو اس کام کی اجازت نہیں دی گئی — ضرورت ہو تو سپر ایڈمن سے رابطہ کریں۔ / You have not been given permission for this. Ask the Super Admin if you need it.");
+}
+function rsKeyAllowed(k){
+  return RS_TABS.some(function(tab){ return RS_TAB_KEYS[tab].indexOf(k) !== -1 && canTab(tab); });
+}
+function rsStable(v){
+  if(Array.isArray(v)){ return "[" + v.map(rsStable).join(",") + "]"; }
+  if(v && typeof v === "object"){
+    return "{" + Object.keys(v).sort().map(function(k){ return JSON.stringify(k) + ":" + rsStable(v[k]); }).join(",") + "}";
+  }
+  return JSON.stringify(v === undefined ? null : v);
+}
+function rsChangedKeys(serverState, merged){
+  return Object.keys(merged).filter(function(k){ return rsStable(merged[k]) !== rsStable(serverState[k]); });
+}
+function rsMarkPermButtons(root){
+  Array.prototype.forEach.call((root || document).querySelectorAll("[data-perm]"), function(el){
+    var ok = canTab(el.getAttribute("data-perm"));
+    el.classList.toggle("perm-off", !ok);
+    if(!ok){
+      if(!el.hasAttribute("data-title0")){ el.setAttribute("data-title0", el.getAttribute("title") || ""); }
+      el.setAttribute("title", "اجازت نہیں / Not permitted");
+      el.setAttribute("aria-disabled", "true");
+    } else {
+      if(el.hasAttribute("data-title0")){
+        var t0 = el.getAttribute("data-title0");
+        if(t0){ el.setAttribute("title", t0); } else { el.removeAttribute("title"); }
+        el.removeAttribute("data-title0");
+      }
+      el.removeAttribute("aria-disabled");
+    }
+  });
+}
+/* body classes + the admin-only toolbar buttons.  Users without ticks of their own: exactly the old rule (guest-mode unless Administrator). */
+function rsApplyBodyClasses(){
+  var tick = isTickUser();
+  var guest = tick ? (!rsHasCustom() || !rsAnyWrite()) : !isAdmin();
+  document.body.classList.toggle("guest-mode", guest);
+  RS_TABS.forEach(function(k){ document.body.classList.toggle("ro-" + k, tick && !canTab(k)); });
+  document.getElementById("hfConfigBtn").style.display = adminUi()? "inline-flex":"none";
+  document.getElementById("colsConfigBtn").style.display = adminUi()? "inline-flex":"none";
+  rsMarkPermButtons();
+}
+function rsStopApp(){
+  RS_STARTED = false;
+  if(unsubscribeSharedDoc){ unsubscribeSharedDoc(); unsubscribeSharedDoc = null; }
+  if(unsubscribeSharedDropdowns){ unsubscribeSharedDropdowns(); unsubscribeSharedDropdowns = null; }
+  var m = document.getElementById("appMain"); if(m){ m.style.display = "none"; }
+  var l = document.getElementById("authLoadingScreen"); if(l){ l.style.display = "none"; }
+}
+function rsApplyPerms(){
+  if(!CURRENT_USER){ return; }
+  var na = document.getElementById("rsNoAccess");
+  var canV = canTab("v");
+  if(na){ na.classList.toggle("show", !canV); }
+  if(canV){
+    if(!RS_STARTED){
+      RS_STARTED = true;
+      fetchStateFromFirestore(function(){ if(!RS_STARTED){ return; } showAppScreen(); startRealtimeSync(); startSharedDropdownsSync(); });
+    } else {
+      /* a tick changed while the page is open: refresh the screen, no reload needed */
+      if(!adminUi() && (CURRENT_VIEW === "judgesmanage" || CURRENT_VIEW === "custommanage")){ CURRENT_VIEW = "judicial"; switchPanels(); }
+      rsApplyBodyClasses();
+      renderSidenav();
+    }
+  } else {
+    rsStopApp();
+  }
+}
+function rsWatchProfile(uid){
+  rsUnwatchProfile();
+  try{
+    RS_PERM_SIG = JSON.stringify([RS_ME && RS_ME.roleV2, RS_ME && RS_ME.perms && RS_ME.perms.recordsec]);
+    RS_UNSUB_USER = db.collection("users").doc(uid).onSnapshot(function(us){
+      if(!CURRENT_USER){ return; }
+      var nd = us.exists ? us.data() : {};
+      var sig = JSON.stringify([nd.roleV2, nd.perms && nd.perms.recordsec]);
+      if(sig === RS_PERM_SIG){ return; }
+      RS_PERM_SIG = sig;
+      RS_ME = nd;
+      CURRENT_USER.role = (nd.roleV2==="admin" || nd.roleV2==="super_admin") ? "admin" : "guest";
+      CURRENT_USER.isSuperAdmin = (nd.roleV2==="super_admin");
+      rsApplyPerms();
+    }, function(){ /* live profile unavailable: keep what was read at sign-in */ });
+  }catch(e){ RS_UNSUB_USER = null; }
+}
+function rsUnwatchProfile(){
+  if(RS_UNSUB_USER){ try{ RS_UNSUB_USER(); }catch(e){} RS_UNSUB_USER = null; }
+}
 /* Sign-in and account creation now happen in ONE place only — the main Camp
    Office portal (camp-office-suite, one level up). Signing in there signs
    you in here too (same shared Firebase project/session), so this page
@@ -2231,9 +2415,7 @@ function updateUserBar(){
      instead of looking different from one system to another for the same account. */
   roleEl.textContent = CURRENT_USER? (isSuperAdmin()? "Super Admin" : (isAdmin()? "Administrator":"Guest")) : "";
   roleEl.className = "role-badge"+(isAdmin()? " admin":"");
-  document.body.classList.toggle("guest-mode", !isAdmin());
-  document.getElementById("hfConfigBtn").style.display = isAdmin()? "inline-flex":"none";
-  document.getElementById("colsConfigBtn").style.display = isAdmin()? "inline-flex":"none";
+  rsApplyBodyClasses();
 }
 
 /* ================= Item 18: optional report header/footer fields =================
@@ -2283,7 +2465,7 @@ function buildPrintExtraFieldsHtml(key){
   return rows.join("");
 }
 document.getElementById("hfConfigBtn").addEventListener("click", function(){
-  if(!isAdmin()){ toast("Only an Administrator can change header/footer fields."); return; }
+  if(!adminUi()){ toast("Only an Administrator can change header/footer fields."); return; }
   var key = currentPanelKey();
   var cfg = (STATE.headerFooterConfig && STATE.headerFooterConfig[key]) || {};
   document.getElementById("hfModalOverlay").dataset.key = key;
@@ -2302,7 +2484,7 @@ document.getElementById("hfCancelBtn").addEventListener("click", function(){
   document.getElementById("hfModalOverlay").style.display = "none";
 });
 document.getElementById("hfSaveBtn").addEventListener("click", function(){
-  if(!isAdmin()){ toast("Only an Administrator can change header/footer fields."); return; }
+  if(!adminUi()){ toast("Only an Administrator can change header/footer fields."); return; }
   var key = document.getElementById("hfModalOverlay").dataset.key;
   STATE.officeAddress = document.getElementById("hfOfficeAddress").value.trim();
   STATE.officeContact = document.getElementById("hfOfficeContact").value.trim();
@@ -2381,7 +2563,7 @@ function renderColsCheckboxes(panelKey, cols){
   document.getElementById("colsCheckboxWrap").innerHTML = html || "<p>No printable columns.</p>";
 }
 document.getElementById("colsConfigBtn").addEventListener("click", function(){
-  if(!isAdmin()){ toast("صرف Administrator کالم کی ترتیب بدل سکتا ہے۔ / Only an Administrator can change print columns."); return; }
+  if(!adminUi()){ toast("صرف Administrator کالم کی ترتیب بدل سکتا ہے۔ / Only an Administrator can change print columns."); return; }
   var key = currentPanelKey();
   var domId = panelDomIdFromKey(key);
   if(domId==="custom"){ toast("کسٹم رجسٹرز میں فیلڈز پہلے ہی رجسٹر بناتے وقت منتخب کی جاتی ہیں — یہاں الگ سے کالم منتخب کرنے کی ضرورت نہیں۔ / Custom registers already let you choose their fields when defining the register — no separate column selection is needed here."); return; }
@@ -2396,7 +2578,7 @@ document.getElementById("colsCancelBtn").addEventListener("click", function(){
   document.getElementById("colsModalOverlay").style.display = "none";
 });
 document.getElementById("colsSaveBtn").addEventListener("click", function(){
-  if(!isAdmin()){ toast("صرف Administrator کالم کی ترتیب بدل سکتا ہے۔ / Only an Administrator can change print columns."); return; }
+  if(!adminUi()){ toast("صرف Administrator کالم کی ترتیب بدل سکتا ہے۔ / Only an Administrator can change print columns."); return; }
   var key = document.getElementById("colsModalOverlay").dataset.key;
   var result = {};
   document.querySelectorAll("#colsCheckboxWrap .colsChk").forEach(function(chk){ result[chk.dataset.key] = chk.checked; });
@@ -2470,8 +2652,10 @@ auth.onAuthStateChanged(function(user){
       var isSuperAdminFlag = (d.roleV2==="super_admin");
       spinGate(user.uid, d, function(){
         CURRENT_USER = {uid:user.uid, username:user.email, role:role, signatureURL:signatureURL, isSuperAdmin:isSuperAdminFlag};
+        RS_ME = d;
         if(theme) applyTheme(theme);
-        fetchStateFromFirestore(function(){ showAppScreen(); startRealtimeSync(); startSharedDropdownsSync(); });
+        rsWatchProfile(user.uid);
+        rsApplyPerms();
       });
     }).catch(function(err){
       var loadingEl = document.getElementById("authLoadingScreen"); if(loadingEl) loadingEl.style.display="none";
@@ -2482,6 +2666,8 @@ auth.onAuthStateChanged(function(user){
     var loadingEl2 = document.getElementById("authLoadingScreen"); if(loadingEl2) loadingEl2.style.display="none";
     spinClearVerified(CURRENT_USER && CURRENT_USER.uid);
     CURRENT_USER = null;
+    rsUnwatchProfile(); RS_ME = null; RS_STARTED = false; RS_PERM_SIG = "";
+    var rsNa = document.getElementById("rsNoAccess"); if(rsNa){ rsNa.classList.remove("show"); }
     if(unsubscribeSharedDoc){ unsubscribeSharedDoc(); unsubscribeSharedDoc=null; }
     if(unsubscribeSharedDropdowns){ unsubscribeSharedDropdowns(); unsubscribeSharedDropdowns=null; }
     showLoginScreen();
@@ -2570,12 +2756,25 @@ function saveData(deletedIds){
             merged[field] = merged[field].filter(function(item){ return toDelete[field].indexOf(item.id) === -1; });
           }
         });
+        if(isTickUser() && snap.exists){
+          /* user with his own ticks: send ONLY the top-level keys that really changed AND that his ticks own
+             (normalizeData's filled-in default keys are not sent, other tabs' keys are never sent) */
+          var upd = {}, blocked = [], nUpd = 0;
+          rsChangedKeys(serverState, merged).forEach(function(k){
+            if(rsKeyAllowed(k)){ upd[k] = merged[k]; nUpd++; }
+            else { blocked.push(k); merged[k] = serverState[k]; }
+          });
+          RS_BLOCKED = blocked;
+          if(nUpd){ tx.update(SHARED_DOC_REF, upd); }
+          return merged;
+        }
         tx.set(SHARED_DOC_REF, merged);
         return merged;
       });
     }).then(function(merged){
       STATE = merged;
       if(document.getElementById("appMain").style.display !== "none") renderAll();
+      if(RS_BLOCKED.length){ RS_BLOCKED = []; rsDenied(); }
     }).catch(function(err){
       SUPPRESS_NEXT_SNAPSHOT_RENDER = false;
       toast("Could not save to the online database: "+err.message);
@@ -2585,6 +2784,7 @@ function saveData(deletedIds){
 /* Used only by "Restore from file": that action is an explicit, confirmed, admin-only replace-everything
    operation, so it must NOT merge with whatever is currently online. */
 function forceOverwriteData(){
+  if(isTickUser()){ rsDenied(); return; }
   SUPPRESS_NEXT_SNAPSHOT_RENDER = true;
   clearTimeout(saveTimer);
   pendingDeletedIds = {};
@@ -2754,28 +2954,29 @@ function renderSidenav(){
   html += "<div class='navnote'>"+esc(t("nav_judicial"))+"</div>";
   html += "<button class='tab-btn"+(CURRENT_VIEW==="judicial"? " active":"")+"' data-view='judicial'><span class='dot'></span> "+esc(t("jr_navBench"))+"</button>";
   html += "<button class='tab-btn"+(CURRENT_VIEW==="dutyroster"? " active":"")+"' data-view='dutyroster'><span class='dot'></span> "+esc(t("jr_navDuty"))+"</button>";
-  if(isAdmin()){
+  if(adminUi()){
     html += "<button class='tab-btn"+(CURRENT_VIEW==="judgesmanage"? " active":"")+"' data-view='judgesmanage'><span class='dot'></span> "+esc(t("jr_navJudges"))+"</button>";
   }
   html += "<div class='navnote'>"+esc(t("nav_other"))+"</div>";
   html += "<button class='tab-btn"+(CURRENT_VIEW==="filemovement"? " active":"")+"' data-view='filemovement'><span class='dot'></span> "+esc(t("fm_title"))+"</button>";
   html += "<button class='tab-btn"+(CURRENT_VIEW==="letters"? " active":"")+"' data-view='letters'><span class='dot'></span> "+esc(t("nav_letters"))+"</button>";
-  if(CUSTOM_DEFS.length || isAdmin()){
+  if(CUSTOM_DEFS.length || adminUi()){
     html += "<div class='navnote'>"+esc(t("nav_customRegisters"))+"</div>";
     CUSTOM_DEFS.forEach(function(d){
       var label = lang==="ur"? (d.nameUr||d.nameEn) : (d.nameEn||d.nameUr);
       var isActive = (CURRENT_VIEW==="custom" && CURRENT_CUSTOM_DEF_ID===d.id);
       html += "<button class='tab-btn"+(isActive? " active":"")+"' data-customkey='"+d.id+"'><span class='dot'></span> "+esc(label)+"</button>";
     });
-    if(isAdmin()){
+    if(adminUi()){
       html += "<button class='tab-btn"+(CURRENT_VIEW==="custommanage"? " active":"")+"' data-view='custommanage'><span class='dot'></span> "+esc(t("cm_manageBtn"))+"</button>";
     }
   }
   html += "<div class='navnote'>"+esc(t("nav_data"))+"</div>";
-  html += "<button class='data-btn' id='btnBackup'>"+esc(t("btn_backup"))+"</button>";
+  html += "<button class='data-btn' id='btnBackup' data-perm='x'>"+esc(t("btn_backup"))+"</button>";
   html += "<button class='data-btn' id='btnRestore'>"+esc(t("btn_restore"))+"</button>";
   var nav = document.getElementById("sidenav");
   nav.innerHTML = html;
+  rsMarkPermButtons(nav);
   nav.querySelectorAll(".tab-btn[data-key]").forEach(function(btn){
     btn.addEventListener("click", function(){
       CURRENT_VIEW = "register";
@@ -2868,6 +3069,7 @@ function resetForm(){
   resetSelectOrAdd("r_subject","r_subject_new");
 }
 document.getElementById("r_saveBtn").addEventListener("click", function(){
+  if(!canTab('cf')){ rsDenied(); return; }
   var caseNo = document.getElementById("r_caseNo").value.trim();
   var title = document.getElementById("r_title").value.trim();
   if(!caseNo){ toast("Case No. is required."); return; }
@@ -2901,6 +3103,7 @@ document.getElementById("r_saveBtn").addEventListener("click", function(){
 });
 document.getElementById("r_cancelBtn").addEventListener("click", resetForm);
 function editRecord(id){
+  if(!canTab('cf')){ rsDenied(); return; }
   var rec = RECORDS.find(function(x){ return x.id===id; });
   if(!rec) return;
   editId = id;
@@ -2920,6 +3123,7 @@ function editRecord(id){
   document.getElementById("panel-register").scrollIntoView({behavior:"smooth"});
 }
 function deleteRecord(id){
+  if(!canTab('cf')){ rsDenied(); return; }
   if(!confirm("Delete this entry?")) return;
   RECORDS = RECORDS.filter(function(x){ return x.id!==id; });
   STATE.records = RECORDS;
@@ -2998,6 +3202,7 @@ document.getElementById("rf_clear").addEventListener("click", function(){
   renderRegister();
 });
 document.getElementById("r_exportBtn").addEventListener("click", function(){
+  if(!canTab('x')){ rsDenied(); return; }
   var list = filteredRecords();
   var rows = [["Sr#","Case No.","Case title / parties","Court ref. No.","Institution date","Subject","Status","Next hearing","Disposal date","Remarks"]];
   list.forEach(function(r,i){ rows.push([i+1, r.caseNo, r.title, r.courtRefNo, r.institutionDate, r.subject, r.status, r.nextHearing, r.disposalDate, r.remarks]); });
@@ -3023,6 +3228,7 @@ function resetFmForm(){
   resetSelectOrAdd("fm_receivedBy","fm_receivedBy_new");
 }
 document.getElementById("fm_saveBtn").addEventListener("click", function(){
+  if(!canTab('fm')){ rsDenied(); return; }
   var fileNo = document.getElementById("fm_fileNo").value.trim();
   var sentTo = getSelectOrAddValue("fm_sentTo","fm_sentTo_new");
   if(!fileNo){ toast("File / Case No. is required."); return; }
@@ -3055,6 +3261,7 @@ document.getElementById("fm_saveBtn").addEventListener("click", function(){
 });
 document.getElementById("fm_cancelBtn").addEventListener("click", resetFmForm);
 function editFm(id){
+  if(!canTab('fm')){ rsDenied(); return; }
   var rec = FILE_MOVEMENTS.find(function(x){ return x.id===id; });
   if(!rec) return;
   fmEditId = id;
@@ -3077,6 +3284,7 @@ function editFm(id){
   document.getElementById("panel-filemovement").scrollIntoView({behavior:"smooth"});
 }
 function deleteFm(id){
+  if(!canTab('fm')){ rsDenied(); return; }
   if(!confirm("Delete this entry?")) return;
   FILE_MOVEMENTS = FILE_MOVEMENTS.filter(function(x){ return x.id!==id; });
   STATE.fileMovements = FILE_MOVEMENTS;
@@ -3141,6 +3349,7 @@ document.getElementById("fmf_clear").addEventListener("click", function(){
   renderFileMovement();
 });
 document.getElementById("fm_exportBtn").addEventListener("click", function(){
+  if(!canTab('x')){ rsDenied(); return; }
   var list = filteredFm();
   var rows = [["Sr#","File / Case No.","Title / description","Sent from","Sent to","Date sent","Purpose","Received back","Received by","Status","Remarks"]];
   list.forEach(function(r,i){ rows.push([i+1, r.fileNo, r.titleField, r.sentFrom, r.sentTo, r.dateSent, r.purpose, r.dateReceived, r.receivedBy, fmStatusOf(r), r.remarks]); });
@@ -3165,6 +3374,7 @@ function resetLtForm(){
   });
 }
 document.getElementById("lt_saveBtn").addEventListener("click", function(){
+  if(!canTab('lt')){ rsDenied(); return; }
   var toName = document.getElementById("lt_toName").value.trim();
   var subject = document.getElementById("lt_subject").value.trim();
   var bodyText = document.getElementById("lt_body").value.trim();
@@ -3200,6 +3410,7 @@ document.getElementById("lt_saveBtn").addEventListener("click", function(){
 });
 document.getElementById("lt_cancelBtn").addEventListener("click", resetLtForm);
 function editLt(id){
+  if(!canTab('lt')){ rsDenied(); return; }
   var rec = LETTERS.find(function(x){ return x.id===id; });
   if(!rec) return;
   ltEditId = id;
@@ -3218,6 +3429,7 @@ function editLt(id){
   document.getElementById("ltFormCard").scrollIntoView({behavior:"smooth"});
 }
 function deleteLt(id){
+  if(!canTab('lt')){ rsDenied(); return; }
   if(!confirm("Delete this letter?")) return;
   LETTERS = LETTERS.filter(function(x){ return x.id!==id; });
   STATE.letters = LETTERS;
@@ -3247,6 +3459,7 @@ function buildLetterWhatsAppText(letter){
   return [t("lt_subjectLabel")+" "+(letter.subject||""), "", (letter.body||"")].join("\n");
 }
 function sendLetterWhatsapp(id){
+  if(!canTab('x')){ rsDenied(); return; }
   var letter = LETTERS.find(function(x){ return x.id===id; });
   if(!letter) return;
   var digits = (letter.whatsapp||"").replace(/[^0-9]/g,"");
@@ -3277,16 +3490,18 @@ function renderLetterPreview(){
     "<div class='lt-preview-subject'>"+esc(t("lt_subjectLabel"))+" "+esc(rec.subject)+"</div>"+
     "<div class='lt-preview-body'>"+esc(rec.body)+"</div>"+
     "<div class='lt-preview-actions'>"+
-      "<button class='btn ghost small' id='ltPreviewPrintBtn'>🖨️ "+esc(t("btn_printCurrent"))+"</button>"+
-      "<button class='btn ghost small' id='ltPreviewPdfBtn' title=\"Downloads a ready PDF file directly\">"+esc(t("btn_downloadPdf"))+"</button>"+
-      "<button class='btn ghost small' id='ltPreviewWaBtn'>"+esc(t("btn_sendWhatsapp"))+"</button>"+
+      "<button class='btn ghost small' id='ltPreviewPrintBtn' data-perm='x'>🖨️ "+esc(t("btn_printCurrent"))+"</button>"+
+      "<button class='btn ghost small' id='ltPreviewPdfBtn' data-perm='x' title=\"Downloads a ready PDF file directly\">"+esc(t("btn_downloadPdf"))+"</button>"+
+      "<button class='btn ghost small' id='ltPreviewWaBtn' data-perm='x'>"+esc(t("btn_sendWhatsapp"))+"</button>"+
     "</div>";
   document.getElementById("ltPreviewPrintBtn").addEventListener("click", function(){
+    if(!canTab('x')){ rsDenied(); return; }
     document.getElementById("pbPrintExtraFields").innerHTML = buildPrintExtraFieldsHtml(currentPanelKey());
     window.print();
   });
   document.getElementById("ltPreviewPdfBtn").addEventListener("click", downloadCurrentViewAsPdf);
   document.getElementById("ltPreviewWaBtn").addEventListener("click", function(){ sendLetterWhatsapp(rec.id); });
+  rsMarkPermButtons(wrap);
 }
 function renderLetters(){
   var lang = document.documentElement.getAttribute("data-ui-lang") || "en";
@@ -3307,7 +3522,7 @@ function renderLetters(){
       "<td>"+(i+1)+"</td><td>"+esc(r.date)+"</td><td>"+esc(ltTypeLabel(r.type))+"</td><td>"+esc(r.toName)+"</td><td>"+esc(r.subject)+"</td>"+
       "<td class='row-actions'>"+
       "<button class='btn ghost small view-only-btn' data-ltview='"+r.id+"'>"+esc(t("btn_viewPrint"))+"</button>"+
-      "<button class='btn ghost small view-only-btn' data-ltwa='"+r.id+"'>"+esc(t("btn_sendWhatsapp"))+"</button>"+
+      "<button class='btn ghost small view-only-btn' data-perm='x' data-ltwa='"+r.id+"'>"+esc(t("btn_sendWhatsapp"))+"</button>"+
       "<button class='btn ghost small' data-ltedit='"+r.id+"'>"+(lang==="ur"?"ترمیم":"Edit")+"</button>"+
       "<button class='btn danger small' data-ltdel='"+r.id+"'>"+(lang==="ur"?"حذف":"Delete")+"</button></td>";
     body.appendChild(tr);
@@ -3319,6 +3534,7 @@ function renderLetters(){
 
   if(ltPreviewId && !LETTERS.some(function(x){ return x.id===ltPreviewId; })){ ltPreviewId = null; }
   renderLetterPreview();
+  rsMarkPermButtons(body);
 }
 ["ltf_type","ltf_to","ltf_subject"].forEach(function(id){
   document.getElementById(id).addEventListener("input", renderLetters);
@@ -3329,6 +3545,7 @@ document.getElementById("ltf_clear").addEventListener("click", function(){
   renderLetters();
 });
 document.getElementById("lt_exportBtn").addEventListener("click", function(){
+  if(!canTab('x')){ rsDenied(); return; }
   var list = filteredLt();
   var rows = [["Sr#","Date","Type","Reference No.","To","Designation","WhatsApp","Subject",
     "Case No.","Title of Case","Versus","F.I.R No.","FIR date","Police Station","District","Tehsil","Bench No.","Sr No.","Body"]];
@@ -3343,6 +3560,7 @@ document.getElementById("lt_exportBtn").addEventListener("click", function(){
 
 /* ================= BACKUP / RESTORE ================= */
 function doBackup(){
+  if(!canTab('x')){ rsDenied(); return; }
   var rows = ["﻿"];
   var payload = { savedAt: new Date().toISOString(), records: RECORDS, fileMovements: FILE_MOVEMENTS, customRegisterDefs: CUSTOM_DEFS, customRecords: CUSTOM_RECORDS, judges: JUDGES, benchEntries: BENCH_ENTRIES, dutyRoster: DUTY_ROSTER, letters: LETTERS };
   var blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
@@ -3358,6 +3576,7 @@ document.getElementById("restoreFile").addEventListener("change", function(e){
   var file = e.target.files[0];
   if(!file) return;
   if(!isAdmin()){ toast("Only an Administrator can restore from a backup file."); e.target.value=""; return; }
+  if(isTickUser()){ rsDenied(); e.target.value=""; return; }
   var reader = new FileReader();
   reader.onload = function(ev){
     try{
@@ -3409,6 +3628,7 @@ document.getElementById("restoreFile").addEventListener("change", function(e){
 
 /* ================= PRINT ================= */
 document.getElementById("globalPrintBtn").addEventListener("click", function(){
+  if(!canTab('x')){ rsDenied(); return; }
   document.getElementById("pbPrintExtraFields").innerHTML = buildPrintExtraFieldsHtml(currentPanelKey());
   window.print();
 });
@@ -3479,6 +3699,7 @@ function buildPdfFromElement(target, filename, marginMm, jsPdfFormat, jsPdfOrien
   });
 }
 function downloadCurrentViewAsPdf(){
+  if(!canTab('x')){ rsDenied(); return; }
   document.getElementById("pbPrintExtraFields").innerHTML = buildPrintExtraFieldsHtml(currentPanelKey());
   var target = document.querySelector(".shell");
   var label = (PANEL_LABELS[currentPanelKey()]||"Document").replace(/[^A-Za-z0-9]+/g,'-');
@@ -3611,6 +3832,7 @@ wireSelectOrAdd("dr_court","dr_court_new");
     _nativePrint();
   }
   window.print = function(){
+    if(!canTab('x')){ rsDenied(); return; }
     var saved = loadSaved();
     nameInput.value = saved.name || "";
     desigInput.value = saved.designation || "";
