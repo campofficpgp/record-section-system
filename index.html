@@ -278,6 +278,9 @@ html,body{overflow-x:hidden;}
 .pb-modal label{display:block;font-size:12.5px;margin-bottom:4px;color:#333;}
 .pb-modal input{width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:6px;font-size:14px;box-sizing:border-box;font-family:inherit;}
 .pb-modal .pb-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;}
+.pb-modal select.pb-pick{width:100%;padding:7px 8px;border:1px solid #ccc;border-radius:6px;font-size:13px;box-sizing:border-box;font-family:inherit;margin-bottom:10px;}
+.pb-modal .pb-inc{display:flex;align-items:center;gap:8px;font-size:13.5px;margin:2px 0 12px;cursor:pointer;}
+.pb-modal .pb-inc input{width:auto;}
 .pb-modal button{padding:8px 18px;border-radius:6px;border:none;cursor:pointer;font-size:13.5px;}
 .pb-modal .pb-cancel{background:#eee;color:#333;}
 .pb-modal .pb-confirm{background:#1F4E78;color:#fff;font-weight:600;}
@@ -407,6 +410,7 @@ html,body{overflow-x:hidden;}
 <script>window.CAMP_REQUIRE_APPROVED=true;</script>
 <script src="/auth-guard.js" defer></script>
 <script src="/logo-control.js?v=2" defer></script>
+<script src="/stamp-signers.js?v=1"></script>
 </head>
 <body>
 <div class="pb-print-masthead" id="pbPrintMasthead">
@@ -1085,6 +1089,7 @@ html,body{overflow-x:hidden;}
   <div class="pb-modal">
     <h3>پرنٹ سے پہلے / Before Printing</h3>
     <div class="pb-sub">براہ کرم اپنا نام اور عہدہ درج کریں — یہ اس پرنٹ پر بطور دستخط شامل ہو گا۔<br>Please enter your name and designation — this will appear as the signature on this print.</div>
+    <select class="pb-pick" id="pbPick" aria-label="Choose from list"></select>
     <div class="field"><label>نام / Name</label><input type="text" id="pbName" placeholder="e.g. Iftikhar Ahmed"></div>
     <div class="field"><label>عہدہ / Designation</label><input type="text" id="pbDesig" placeholder="e.g. Junior Clerk, Camp Office Prosecutor General Punjab, Supreme Court of Pakistan, Islamabad"></div>
     <div class="field pb-sig-field">
@@ -1099,6 +1104,7 @@ html,body{overflow-x:hidden;}
       <div class="pb-sig-hint">اپنے دستخط کی تصویر اپلوڈ کریں — یہ آپ کے پروفائل میں محفوظ ہو کر ہر سسٹم میں کام آئے گی۔<br>Upload an image of your signature — it's saved to your profile and reused across every system.</div>
       <div class="pb-sig-progress" id="pbSigProgress" style="display:none;"></div>
     </div>
+    <label class="pb-inc"><input type="checkbox" id="pbIncStamp"> <span>Add Prepared by line &nbsp;/&nbsp; تیار کردہ (Prepared by) کی سطر شامل کریں</span></label>
     <div class="pb-actions">
       <button type="button" class="pb-cancel" id="pbCancelBtn">Cancel</button>
       <button type="button" class="pb-confirm" id="pbConfirmBtn">پرنٹ کریں / Print</button>
@@ -3768,6 +3774,21 @@ wireSelectOrAdd("dr_court","dr_court_new");
   var sigProgress = document.getElementById("pbSigProgress");
   if(!overlay || !nameInput || typeof window.print !== "function") return;
   var _nativePrint = window.print.bind(window);
+  /* The "Prepared by" line is OPTIONAL: printed only when this box is ticked (remembered; off by default). */
+  var INC_KEY = "campoffice_includeStamp_v1";
+  var incEl = document.getElementById("pbIncStamp");
+  function stampOn(){ try{ return localStorage.getItem(INC_KEY) === "1"; }catch(e){ return false; } }
+  function setStampOn(v){ try{ localStorage.setItem(INC_KEY, v ? "1" : "0"); }catch(e){} }
+  function pbIsUrdu(){ return document.body.classList.contains("lang-ur") || document.documentElement.lang === "ur"; }
+  function wirePicker(){
+    if(!window.StampSigners) return;
+    StampSigners.mount(document.getElementById("pbPick"), function(it){
+      nameInput.value = it.name || "";
+      var addr = String(it.address || "").split("\n").map(function(x){ return x.trim(); }).filter(Boolean).join(", ");
+      desigInput.value = [it.designation, addr].filter(Boolean).join(", ");
+    }, pbIsUrdu);
+    if(!StampSigners.__pbLoaded){ StampSigners.__pbLoaded = true; try{ if(typeof db !== "undefined") StampSigners.load(db); }catch(e){} }
+  }
 
   /* ---- digital signature (optional; stored on the user's account, reused across every camp-office system) ---- */
   function currentSigUrl(){ return (CURRENT_USER && CURRENT_USER.signatureURL) || ""; }
@@ -3824,10 +3845,12 @@ wireSelectOrAdd("dr_court","dr_court_new");
     var desig = desigInput.value.trim();
     var sigUrl = currentSigUrl();
     saveLast(name, desig);
+    var inc = incEl ? incEl.checked : stampOn();
+    setStampOn(inc);
     if(footEl){
       var cgdNote = "<div style=\"margin-top:4px;font-size:10.5px;color:#666;\">This is a computer generated document. / یہ ایک کمپیوٹر سے تیار کردہ دستاویز ہے۔</div>";
       var sigImgHtml = sigUrl ? ("<img src=\""+sigUrl+"\" class=\"pb-print-sig-img\" alt=\"signature\">") : "";
-      footEl.innerHTML = sigImgHtml + ((name||desig) ? ("Prepared by: <b>"+escHtmlLocal(name)+"</b>"+(desig? (", "+escHtmlLocal(desig)) : "")) : "") + cgdNote;
+      footEl.innerHTML = (inc ? sigImgHtml : "") + ((inc && (name||desig)) ? ("Prepared by: <b>"+escHtmlLocal(name)+"</b>"+(desig? (", "+escHtmlLocal(desig)) : "")) : "") + cgdNote;
     }
     overlay.style.display = "none";
     _nativePrint();
@@ -3838,6 +3861,8 @@ wireSelectOrAdd("dr_court","dr_court_new");
     nameInput.value = saved.name || "";
     desigInput.value = saved.designation || "";
     showSigPreview(currentSigUrl());
+    if(incEl) incEl.checked = stampOn();
+    wirePicker();
     overlay.style.display = "flex";
     setTimeout(function(){ nameInput.focus(); nameInput.select(); }, 30);
   };
