@@ -96,6 +96,20 @@ html,body{overflow-x:hidden;}
     --text:#2e3440; --muted:#6d7787;
     --shadow:0 1px 2px rgba(46,52,64,0.08), 0 1px 1px rgba(46,52,64,0.04);
   }
+  [data-theme="ocean"]{
+    --navy:#1670a0; --navy-dark:#0f4a6e; --navy-tint:#EAF4FA;
+    --amber:#c9852a; --amber-tint:#faf0dd;
+    --bg:#F2F8FB; --surface:#FFFFFF; --border:#D8E9F0; --border-strong:#B6D8E6;
+    --text:#1A3444; --muted:#5A7E8F;
+    --shadow:0 1px 2px rgba(15,74,110,0.08), 0 1px 1px rgba(15,74,110,0.04);
+  }
+  [data-theme="contrast"]{
+    --navy:#111111; --navy-dark:#000000; --navy-tint:#f5f5f5;
+    --amber:#8a4b00; --amber-tint:#fff3d6;
+    --bg:#fafafa; --surface:#ffffff; --border:#1a1a1a; --border-strong:#000000;
+    --text:#0a0a0a; --muted:#2e2e2e;
+    --shadow:0 1px 2px rgba(0,0,0,0.25), 0 1px 1px rgba(0,0,0,0.15);
+  }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
   body{background:var(--bg);color:var(--text);font-family:"Segoe UI",system-ui,-apple-system,"Noto Sans",Arial,sans-serif;font-size:14px;line-height:1.45;}
@@ -728,6 +742,8 @@ body.lang-ur .br-menu-list{ right:auto; left:0; }
       <option value="night">تاریک موڈ 🌙 / Night Mode</option>
       <option value="sepia">نرم کاغذی 📜 / Sepia</option>
       <option value="slate">نرم خاکستری 🩶 / Soft Slate</option>
+      <option value="ocean">سمندری نیلا 🌊 / Ocean</option>
+      <option value="contrast">ہائی کنٹراسٹ / High Contrast</option>
     </select>
     <img class="topbar-logo-sm" src="logo-public-prosecution.png" alt="Public Prosecution Punjab">
   </div>
@@ -2453,7 +2469,7 @@ document.getElementById("dr_exportBtn").addEventListener("click", function(){
 });
 
 /* ================= THEME (per-user; follows the user's login across every camp-office system) ================= */
-var THEME_NAMES = ["navy","green","ivory","teal","night","sepia","slate"];
+var THEME_NAMES = ["navy","green","ivory","teal","night","sepia","slate","ocean","contrast"];
 function applyTheme(name){
   if(THEME_NAMES.indexOf(name)===-1) name = "navy";
   document.documentElement.setAttribute("data-theme", name);
@@ -4131,7 +4147,7 @@ wireSelectOrAdd("dr_court","dr_court_new");
 (function(){
   var ls=document.getElementById('uiLangSelect'), ts=document.getElementById('themeSwitcher');
   var lb=document.getElementById('langBtn'), tb=document.getElementById('themeBtn'), tp=document.getElementById('themePicker');
-  var COL={"navy": ["#1F4E78", "#B8860B"], "green": ["#0F5132", "#C9A227"], "ivory": ["#7A1F2B", "#4A3527"], "teal": ["#0B7A75", "#8A6A12"], "night": ["#1c2436", "#d4a13d"], "sepia": ["#6b4a26", "#8a5a2b"], "slate": ["#3b4758", "#a68b5b"]};
+  var COL={"navy": ["#1F4E78", "#B8860B"], "green": ["#0F5132", "#C9A227"], "ivory": ["#7A1F2B", "#4A3527"], "teal": ["#0B7A75", "#8A6A12"], "night": ["#1c2436", "#d4a13d"], "sepia": ["#6b4a26", "#8a5a2b"], "slate": ["#3b4758", "#a68b5b"], "ocean": ["#1670a0", "#c9852a"], "contrast": ["#111111", "#8a4b00"]};
   function syncLang(){ if(ls&&lb) lb.textContent = ls.value==='ur' ? 'English' : 'اردو'; }
   if(ls&&lb){
     lb.addEventListener('click',function(){ ls.value=(ls.value==='ur')?'en':'ur'; ls.dispatchEvent(new Event('change')); syncLang(); });
