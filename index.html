@@ -587,6 +587,42 @@ details.faq-item{ border-radius:8px !important; background:var(--surface) !impor
 }
 }
 </style>
+<style id="rs-export-css">
+.en{display:inline;} .ur{display:none;}
+body.lang-ur .en{display:none;} body.lang-ur .ur{display:inline;}
+.br-head-actions{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.br-menu{ position:relative; display:inline-block; }
+.br-menu-list{
+  display:none; position:absolute; right:0; top:calc(100% + 6px); min-width:230px; z-index:200;
+  background:var(--surface); border:1px solid var(--border-strong); border-radius:12px; box-shadow:0 8px 28px rgba(16,32,52,.18),0 2px 6px rgba(16,32,52,.10); padding:6px;
+}
+body.lang-ur .br-menu-list{ right:auto; left:0; }
+.br-menu.open .br-menu-list{ display:block; }
+.br-menu-list button{
+  display:flex !important; align-items:center; gap:10px; width:100%; min-height:38px; padding:8px 12px !important; text-align:start; justify-content:flex-start;
+  border:0 !important; background:transparent !important; border-radius:8px !important; font-size:13px !important; font-weight:500 !important; color:var(--text) !important; cursor:pointer; font-family:inherit;
+}
+.br-menu-list button:hover{ background:var(--navy-tint) !important; }
+.br-menu-list button .mi{ width:20px; text-align:center; flex:none; }
+.br-menu-list hr{ border:0; border-top:1px solid var(--border); margin:5px 4px; }
+.br-exportbar .br-menu-btn{
+  height:38px; padding:0 16px; border-radius:8px; font-size:13.5px; font-weight:600; cursor:pointer; font-family:inherit;
+  display:inline-flex; align-items:center; gap:8px; background:var(--navy); color:#fff; border:1px solid var(--navy); box-shadow:0 1px 2px rgba(16,32,52,.18);
+}
+.br-exportbar .br-menu-btn:hover{ background:var(--navy-dark); }
+.br-exportbar .br-menu-btn .caret{ font-size:10px; opacity:.8; }
+.br-exportbar .br-menu-list button .sub{ display:block; font-size:11px; color:var(--muted); font-weight:400; }
+.br-exportbar.busy .br-menu-btn{ opacity:.65; pointer-events:none; }
+[data-theme="night"] .br-exportbar .br-menu-btn{ background:var(--amber); color:#1b1b1b; border-color:var(--amber); }
+@media screen{ .tool-strip #globalPrintBtn,.tool-strip #globalPdfBtn{ display:none !important; } }
+@media (max-width:640px){
+  .br-exportbar{ width:100%; }
+  .br-exportbar .br-menu{ display:block; }
+  .br-exportbar .br-menu-btn{ width:100%; justify-content:center; height:44px; }
+  .br-exportbar .br-menu-list{ left:0; right:0; min-width:0; }
+}
+@media print{ .br-exportbar,.br-menu-list{ display:none !important; } }
+</style>
 </head>
 <body>
 <div class="pb-print-masthead" id="pbPrintMasthead">
@@ -4118,5 +4154,6 @@ wireSelectOrAdd("dr_court","dr_court_new");
 </script>
 <script src="https://cmpofficepgp.org/camp-office-suite/form-history.js" defer></script>
 <script src="https://cmpofficepgp.org/camp-office-suite/a11y.js" defer></script>
+<script src="export-engine.js?v=1"></script>
 </body>
 </html>
