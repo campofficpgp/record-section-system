@@ -154,7 +154,7 @@
     return (h && clean(h.textContent)) || "Record Section";
   }
   function meta(key, panel, tables){
-    var office = "Camp Office, Prosecutor General Punjab";
+    var office = "";
     var title = panelTitle(panel), sub = [];
     var chip = panel.querySelector(".results-strip .count-chip, .panel-head .count-chip");
     if(chip && clean(chip.textContent)) sub.push(clean(chip.textContent));
@@ -303,9 +303,9 @@
     var pbts = await prosBytes(), pemb = null;
     if(pbts){ try{ pemb = await doc.embedPng(pbts); }catch(e){ pemb = null; } }
     if(pemb){ var ph2 = 40, pw2 = ph2 * pemb.width / pemb.height; page.drawImage(pemb, {x:PW - M - pw2, y:y - ph2, width:pw2, height:ph2}); }
-    var h1 = san(m.office), h2 = "Camp Office Prosecutor General Punjab  |  Supreme Court of Pakistan, Islamabad";
+    var h1 = san(m.office), h2 = "";
     page.drawText(h1, {x:(PW - FB.widthOfTextAtSize(h1, 15)) / 2, y:y - 15, size:15, font:FB, color:navy});
-    if(h1 !== "Camp Office, Prosecutor General Punjab")
+    if(h1 !== "")
       page.drawText(san(h2), {x:(PW - F.widthOfTextAtSize(san(h2), 8.5)) / 2, y:y - 29, size:8.5, font:F, color:grey});
     y = top - 46;
     page.drawLine({start:{x:M, y:y}, end:{x:PW - M, y:y}, thickness:2.2, color:goldL});
@@ -350,13 +350,13 @@
     var pages = doc.getPages();
     pages.forEach(function(p, i){
       p.drawLine({start:{x:M, y:26}, end:{x:PW - M, y:26}, thickness:.6, color:line});
-      p.drawText("Camp Office Prosecutor General Punjab", {x:M, y:15, size:7, font:F, color:grey});
+      p.drawText("", {x:M, y:15, size:7, font:F, color:grey});
       var mid = "Generated " + todayText();
       p.drawText(mid, {x:(PW - F.widthOfTextAtSize(mid, 7)) / 2, y:15, size:7, font:F, color:grey});
       var s = "Page " + (i + 1) + " of " + pages.length;
       p.drawText(s, {x:PW - M - FB.widthOfTextAtSize(s, 7.4), y:15, size:7.4, font:FB, color:navy});
     });
-    doc.setTitle(san(m.title)); doc.setCreator("Camp Office, Prosecutor General Punjab");
+    doc.setTitle(san(m.title)); doc.setCreator("");
     return await doc.save();
   }
 
@@ -370,7 +370,7 @@
     var children = [], lg = await logoInfo(), pg = await prosInfo();
     var headParas = [
       para([run(m.office, {size:30, bold:true, color:"1B3F63"})], {align:D.AlignmentType.CENTER, after:20}),
-      para([run("Camp Office Prosecutor General Punjab  |  Supreme Court of Pakistan, Islamabad", {size:16, color:"666666"})], {align:D.AlignmentType.CENTER, after:80})
+      para([run("", {size:16, color:"666666"})], {align:D.AlignmentType.CENTER, after:80})
     ];
     if(lg || pg){
       /* emblem on the LEFT, heading centred — same letterhead as the Weekly Court Roster */
@@ -438,11 +438,11 @@
       width:{size:usable, type:D.WidthType.DXA}, columnWidths:[half, half], layout:D.TableLayoutType.FIXED,
       borders:{top:none, bottom:none, left:none, right:none, insideHorizontal:none, insideVertical:none}}));
     var doc = new D.Document({
-      creator:"Camp Office, Prosecutor General Punjab", title:m.title,
+      creator:"", title:m.title,
       sections:[{
         properties:{page:{size:{width:m.paper.tw, height:m.paper.th, orientation:m.landscape ? D.PageOrientation.LANDSCAPE : D.PageOrientation.PORTRAIT}, margin:{top:567, bottom:680, left:MG, right:MG, footer:300}}},
         footers:{default:new D.Footer({children:[new D.Paragraph({alignment:D.AlignmentType.CENTER, children:[
-          new D.TextRun({children:["Camp Office Prosecutor General Punjab   |   Page ", D.PageNumber.CURRENT, " of ", D.PageNumber.TOTAL_PAGES], font:FONT, size:15, color:"777777"})]})]})},
+          new D.TextRun({children:["Page ", D.PageNumber.CURRENT, " of ", D.PageNumber.TOTAL_PAGES], font:FONT, size:15, color:"777777"})]})]})},
         children:children
       }]
     });
@@ -572,7 +572,7 @@
         "<sheetData>" + rows + '</sheetData><autoFilter ref="A4:' + last + (lastData < 5 ? 5 : lastData) + '"/><mergeCells count="' + merges.length + '">' + merges.map(function(x){ return '<mergeCell ref="' + x + '"/>'; }).join("") + "</mergeCells>" +
         '<printOptions horizontalCentered="1"/><pageMargins left="0.4" right="0.4" top="0.5" bottom="0.6" header="0.25" footer="0.3"/>' +
         '<pageSetup paperSize="' + m.paper.code + '" orientation="' + (m.landscape ? "landscape" : "portrait") + '" fitToWidth="1" fitToHeight="0"/>' +
-        '<headerFooter><oddFooter>&amp;L&amp;8Camp Office, Prosecutor General Punjab&amp;R&amp;8Page &amp;P of &amp;N</oddFooter></headerFooter>' + ((lg || pg) ? '<drawing r:id="rId1"/>' : '') + '</worksheet>';
+        '<headerFooter><oddFooter>&amp;R&amp;8Page &amp;P of &amp;N</oddFooter></headerFooter>' + ((lg || pg) ? '<drawing r:id="rId1"/>' : '') + '</worksheet>';
       sheets.push({lastW:widths[n - 1], nCols:n, name:sheetName(t, ti), xml:xml, filterRef:"A4:" + last + (lastData < 5 ? 5 : lastData)});
     });
     var wb = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>' +
