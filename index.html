@@ -3732,6 +3732,7 @@ function renderLetterPreview(){
   document.getElementById("ltPreviewPrintBtn").addEventListener("click", function(){
     if(!canTab('x')){ rsDenied(); return; }
     document.getElementById("pbPrintExtraFields").innerHTML = buildPrintExtraFieldsHtml(currentPanelKey());
+    var st = document.getElementById("rsPrintPage"); if(st) st.textContent = "@media print{ @page{ size:A4; margin:12mm; } }";
     window.print();
   });
   document.getElementById("ltPreviewPdfBtn").addEventListener("click", downloadCurrentViewAsPdf);
@@ -3862,9 +3863,18 @@ document.getElementById("restoreFile").addEventListener("change", function(e){
 });
 
 /* ================= PRINT ================= */
+/* Wide registers print on A4 landscape so no column is cut; letters and narrow pages stay portrait. */
+function rsPrintFit(){
+  var wide = false;
+  document.querySelectorAll("table").forEach(function(t){ if(t.offsetParent && t.scrollWidth > 700) wide = true; });
+  var st = document.getElementById("rsPrintPage");
+  if(!st){ st = document.createElement("style"); st.id = "rsPrintPage"; document.head.appendChild(st); }
+  st.textContent = wide ? "@media print{ @page{ size:A4 landscape; margin:10mm; } table{ width:100% !important; } th, td{ font-size:10.5px !important; word-break:break-word; } }" : "@media print{ @page{ size:A4; margin:12mm; } }";
+}
 document.getElementById("globalPrintBtn").addEventListener("click", function(){
   if(!canTab('x')){ rsDenied(); return; }
   document.getElementById("pbPrintExtraFields").innerHTML = buildPrintExtraFieldsHtml(currentPanelKey());
+  rsPrintFit();
   window.print();
 });
 
