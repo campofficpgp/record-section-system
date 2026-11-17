@@ -3869,7 +3869,7 @@ function rsPrintFit(){
   document.querySelectorAll("table").forEach(function(t){ if(t.offsetParent && t.scrollWidth > 700) wide = true; });
   var st = document.getElementById("rsPrintPage");
   if(!st){ st = document.createElement("style"); st.id = "rsPrintPage"; document.head.appendChild(st); }
-  st.textContent = wide ? "@media print{ @page{ size:A4 landscape; margin:10mm; } table{ width:100% !important; } th, td{ font-size:10.5px !important; word-break:break-word; } }" : "@media print{ @page{ size:A4; margin:12mm; } }";
+  st.textContent = wide ? "@media print{ @page{ size:A4 landscape; margin:10mm; } table{ width:100% !important; } th, td{ font-size:10.5px !important; word-break:break-word; white-space:normal !important; min-width:0 !important; } }" : "@media print{ @page{ size:A4; margin:12mm; } }";
 }
 document.getElementById("globalPrintBtn").addEventListener("click", function(){
   if(!canTab('x')){ rsDenied(); return; }
